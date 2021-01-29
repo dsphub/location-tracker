@@ -68,7 +68,7 @@ class LocationManagerWrapper(private val context: Context) {
             override fun onLocationChanged(location: Location?) {
                 val c = counter.incrementAndGet()
                 d { "$c: ${dateFormatter.format(Date())} p=${location?.provider} lat=${location?.latitude} lon=${location?.longitude} acc=${location?.accuracy}" }
-                subject.onNext("$c: ${dateFormatter.format(Date())} lat=${location?.latitude} lon=${location?.longitude}")
+                subject.onNext("$c: ${dateFormatter.format(Date())} p=${location?.provider} lat=${location?.latitude} lon=${location?.longitude}")
             }
         }
         locationManager.requestLocationUpdates(
