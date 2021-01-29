@@ -1,2 +1,2 @@
 include ':app'
-rootProject.name='Android Material Sample'
+rootProject.name='Location Test'
