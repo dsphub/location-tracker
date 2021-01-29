@@ -29,11 +29,10 @@ class HistoryViewModel(private val app: Application) : AndroidViewModel(app) {
     private val disposer = CompositeDisposable()
 
     init {
-        d { "init" }
+        d { "init gps=${locationManager.isGpsEnabled()}" }
         if (!locationManager.isGpsEnabled()) {
             locationManager.enableGps()
         }
-        locationManager.enable()
         disposer.add = locationManager.locationObservable()
             .subscribe({
                 _location.value = it
@@ -52,6 +51,11 @@ class HistoryViewModel(private val app: Application) : AndroidViewModel(app) {
                 )
                 notificationManager.show(n)
             })
+    }
+
+    fun startLocationListener() {
+        d { "startLocationListener" }
+        locationManager.enable()
     }
 
     private fun createNotification(location: String) =
