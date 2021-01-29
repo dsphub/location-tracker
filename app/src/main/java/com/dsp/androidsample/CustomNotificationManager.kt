@@ -28,7 +28,7 @@ class CustomNotificationManager(private val appContext: Context) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "Channel Test",
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Test Description"
             }

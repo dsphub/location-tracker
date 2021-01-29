@@ -111,7 +111,7 @@ class LocationService : Service() {
      *
      * @param context The [Context].
      */
-    fun serviceIsRunningInForeground(context: Context): Boolean {
+    private fun serviceIsRunningInForeground(context: Context): Boolean {
         val manager = context.getSystemService(
             Context.ACTIVITY_SERVICE
         ) as ActivityManager

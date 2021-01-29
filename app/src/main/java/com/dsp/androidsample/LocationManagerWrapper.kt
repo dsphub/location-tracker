@@ -73,6 +73,12 @@ class LocationManagerWrapper(private val context: Context) {
             MIN_DISTANCE_METER,
             listener
         )
+        locationManager.requestLocationUpdates(
+            LocationManager.PASSIVE_PROVIDER,
+            MIN_TIME_MS,
+            MIN_DISTANCE_METER,
+            listener
+        )
     }
 
     fun disable() {
@@ -83,7 +89,7 @@ class LocationManagerWrapper(private val context: Context) {
     fun locationObservable(): Observable<String> = subject
 
     companion object {
-        const val MIN_TIME_MS = 1000L
-        const val MIN_DISTANCE_METER = 1F
+        const val MIN_TIME_MS = 0L
+        const val MIN_DISTANCE_METER = 0F
     }
 }
