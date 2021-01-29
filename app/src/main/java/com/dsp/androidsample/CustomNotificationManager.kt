@@ -15,15 +15,20 @@ open class SimpleNotification(val id: Int, val builder: NotificationCompat.Build
 
 class CustomNotificationManager(private val appContext: Context) {
     companion object {
-        const val channelId = "test_channel"
+        const val CHANNEL_ID = "tracker_test_channel"
     }
 
     init {
+        makeChannel()
+    }
+
+    fun makeChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            d { "makeChannel" }
             val channel = NotificationChannel(
-                channelId,
-                "Channel1",
-                NotificationManager.IMPORTANCE_DEFAULT
+                CHANNEL_ID,
+                "Channel Test",
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Test Description"
             }

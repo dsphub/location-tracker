@@ -43,6 +43,7 @@ class LocationService : Service() {
     override fun onCreate() {
         i { "onCreate" }
         super.onCreate()
+        notificationManager.makeChannel()
         val n = createNotification("Started").build()
         startForeground(FG_LOCATION_NID, n)
         locationManager.enable()
@@ -65,8 +66,8 @@ class LocationService : Service() {
             )
             notificationManager.show(n)
         } else {
-//            val n = createNotification(text).build()
-//            startForeground(FG_LOCATION_NID, n)
+            val n = createNotification(text).build()
+            startForeground(FG_LOCATION_NID, n)
         }
     }
 
@@ -83,7 +84,7 @@ class LocationService : Service() {
     private fun createNotification(location: String) =
         NotificationCompat.Builder(this)
             .addAction(android.R.drawable.ic_dialog_map, "Stop", servicePendingIntent())
-            .setChannelId(CustomNotificationManager.channelId) //FIXIT for Oreo+ only
+            .setChannelId(CustomNotificationManager.CHANNEL_ID) //FIXIT for Oreo+ only
             .setContentText(location)
             .setContentTitle("Fg Location")
             .setOngoing(true)
