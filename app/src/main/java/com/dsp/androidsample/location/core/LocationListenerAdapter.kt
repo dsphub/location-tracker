@@ -1,4 +1,4 @@
-package com.dsp.androidsample
+package com.dsp.androidsample.location.core
 
 import android.location.Location
 import android.location.LocationListener

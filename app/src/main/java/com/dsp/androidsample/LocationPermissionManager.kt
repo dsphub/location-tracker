@@ -1,15 +1,22 @@
 package com.dsp.androidsample
 
-class LocationPermissionManager {
-/*
-    private boolean checkPermissions() {
-        return  PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(this,
-            Manifest.permission.ACCESS_FINE_LOCATION);
-    }
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
 
-    private void requestPermissions() {
-        boolean shouldProvideRationale =
-        ActivityCompat.shouldShowRequestPermissionRationale(this,
+class LocationPermissionManager() {
+    companion object {
+        fun isLocationPermissionGranted(context: Context): Boolean {
+            return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            );
+        }
+    }
+/*
+    private fun requestPermissions() {
+        val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(this,
             Manifest.permission.ACCESS_FINE_LOCATION);
 */
 }

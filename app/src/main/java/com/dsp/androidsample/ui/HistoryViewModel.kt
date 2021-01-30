@@ -6,16 +6,18 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.dsp.androidsample.CustomNotificationManager
-import com.dsp.androidsample.LocationManagerWrapper
+import com.dsp.androidsample.LocationManagerFacade
 import com.dsp.androidsample.SimpleNotification
 import com.dsp.androidsample.add
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.e
 import com.dsp.androidsample.log.Logger.i
+import com.dsp.androidsample.service.SystemServiceFacade
 import io.reactivex.disposables.CompositeDisposable
 
 class HistoryViewModel(private val app: Application) : AndroidViewModel(app) {
-    private val locationManager by lazy { LocationManagerWrapper(app.baseContext) }
+    private val serviceFacade by lazy { SystemServiceFacade(app.baseContext) }
+    private val locationManager by lazy { LocationManagerFacade(app.baseContext) }
     private val notificationManager by lazy { CustomNotificationManager(app.baseContext) }
 
     private val _location = MutableLiveData<String>()
@@ -29,9 +31,9 @@ class HistoryViewModel(private val app: Application) : AndroidViewModel(app) {
     private val disposer = CompositeDisposable()
 
     init {
-        d { "init gps=${locationManager.isGpsEnabled()}" }
-        if (!locationManager.isGpsEnabled()) {
-            locationManager.enableGps()
+        d { "init gps=${serviceFacade.isGpsEnabled()}" }
+        if (!serviceFacade.isGpsEnabled()) {
+            serviceFacade.enableGps()
         }
         disposer.add = locationManager.locationObservable()
             .subscribe({

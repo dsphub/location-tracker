@@ -12,7 +12,7 @@ import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.dsp.androidsample.CustomNotificationManager
-import com.dsp.androidsample.LocationManagerWrapper
+import com.dsp.androidsample.LocationManagerFacade
 import com.dsp.androidsample.SimpleNotification
 import com.dsp.androidsample.add
 import com.dsp.androidsample.log.Logger.d
@@ -23,7 +23,7 @@ import io.reactivex.disposables.CompositeDisposable
 
 
 class LocationService : Service() {
-    private val locationManager by lazy { LocationManagerWrapper(this) }
+    private val locationManager by lazy { LocationManagerFacade(this) }
     private val notificationManager by lazy { CustomNotificationManager(this) }
     private val powerManager
         get() = (this.getSystemService(Context.POWER_SERVICE) as PowerManager)
