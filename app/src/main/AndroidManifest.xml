@@ -23,7 +23,7 @@
             android:name=".service.LocationService"
             android:enabled="true"
             android:exported="true"
-            />
+            android:foregroundServiceType="location" />
 
         <activity android:name=".ui.MainActivity">
             <intent-filter>
