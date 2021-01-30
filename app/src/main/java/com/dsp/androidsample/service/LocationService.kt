@@ -12,9 +12,9 @@ import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.dsp.androidsample.CustomNotificationManager
-import com.dsp.androidsample.LocationManagerFacade
 import com.dsp.androidsample.SimpleNotification
 import com.dsp.androidsample.add
+import com.dsp.androidsample.location.LocationManagerFacade
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.e
 import com.dsp.androidsample.log.Logger.i

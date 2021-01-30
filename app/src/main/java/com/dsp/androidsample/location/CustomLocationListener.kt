@@ -1,4 +1,4 @@
-package com.dsp.androidsample.location.core
+package com.dsp.androidsample.location
 
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject

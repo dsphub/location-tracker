@@ -1,10 +1,7 @@
-package com.dsp.androidsample
+package com.dsp.androidsample.location
 
 import android.content.Context
-import com.dsp.androidsample.location.core.Event
-import com.dsp.androidsample.location.core.LocationEvent
 import com.dsp.androidsample.location.core.LocationManagerWrapper
-import com.dsp.androidsample.location.core.StateEvent
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.e
 import com.dsp.androidsample.service.SystemServiceFacade
@@ -14,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class LocationManagerFacade(private val context: Context) {
-    private val locationManager: LocationManagerWrapper by lazy { LocationManagerWrapper(context) }
+    private val locationManager: CustomLocationListener by lazy { LocationManagerWrapper(context) }
     private val serviceFacade = SystemServiceFacade(context)
     private val subject = BehaviorSubject.create<String>()
     private val dateFormatter = SimpleDateFormat("HH:mm:ss", Locale.US)

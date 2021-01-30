@@ -7,6 +7,9 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
+import com.dsp.androidsample.location.CustomLocationListener
+import com.dsp.androidsample.location.LocationEvent
+import com.dsp.androidsample.location.StateEvent
 import com.dsp.androidsample.log.Logger.w
 import java.util.concurrent.atomic.AtomicInteger
 
