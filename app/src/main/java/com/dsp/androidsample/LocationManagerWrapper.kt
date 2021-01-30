@@ -9,6 +9,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.net.wifi.WifiManager
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.telephony.*
 import android.telephony.CellSignalStrength.*
@@ -24,8 +25,11 @@ import java.util.concurrent.atomic.AtomicInteger
 
 
 class LocationManagerWrapper(private val context: Context) {
-    private var locationManager: LocationManager = context
+    private val locationManager: LocationManager = context
         .getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    private val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+    private val telephonyManager =
+        context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     private lateinit var listener: LocationListener
     private val counter: AtomicInteger = AtomicInteger()
     private val subject = BehaviorSubject.create<String>()
@@ -56,6 +60,7 @@ class LocationManagerWrapper(private val context: Context) {
         d { "enable gps=${isGpsEnabled()} net=${isNetworkEnabled()} pas=${isPassiveEnabled()}" }
         d { "providers $providers" }
         signalStrength()
+        screenModes()
         if (ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -91,6 +96,16 @@ class LocationManagerWrapper(private val context: Context) {
         )
     }
 
+    private fun screenModes() {
+        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        d { "screenOn=${pm.isInteractive}" }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            d { "locationPowerSaveMode=${pm.locationPowerSaveMode}" }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            d { "idleMode=${pm.isDeviceIdleMode}" }
+        d { "powerSaveMode=${pm.isPowerSaveMode}" }
+    }
+
     private fun signalStrength() {
         wifiSignalStrength()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
@@ -98,7 +113,6 @@ class LocationManagerWrapper(private val context: Context) {
     }
 
     private fun wifiSignalStrength() {
-        val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
         val rssi = wifiManager.connectionInfo.rssi
         val level = WifiManager.calculateSignalLevel(rssi, 4)
         d { "wifi enabled=${wifiManager.isWifiEnabled} rssi=$rssi level[0..4]=$level" }
@@ -106,10 +120,9 @@ class LocationManagerWrapper(private val context: Context) {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun mobileSignalStrength() {
-        val telephonyManager =
-            context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         if (telephonyManager.allCellInfo.isEmpty()) {
-            d { "no active mobile cells" }
+            w { "no active mobile cells" }
+            return
         }
         val cellSignalStrengthGsm: CellSignalStrength = when (telephonyManager.allCellInfo[0]) {
             is CellInfoGsm -> {

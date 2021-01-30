@@ -62,7 +62,7 @@ class HistoryViewModel(private val app: Application) : AndroidViewModel(app) {
         NotificationCompat.Builder(app.baseContext)
             .setChannelId(CustomNotificationManager.CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_map)
-            .setContentTitle("Location")
+            .setContentTitle("Location from ui")
             .setContentText(location)
 
     override fun onCleared() {
