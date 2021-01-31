@@ -175,6 +175,7 @@ class LocationService : Service() {
         NotificationCompat.Builder(this)
             .addAction(android.R.drawable.ic_dialog_map, "Stop", servicePendingIntent())
             .setChannelId(CustomNotificationManager.CHANNEL_ID) //FIXIT for Oreo+ only
+            .setContentIntent(activityPendingIntent())
             .setContentText(location)
             .setContentTitle("Location from foreground service")
             .setOngoing(true)
