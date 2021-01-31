@@ -1,4 +1,4 @@
-package com.dsp.androidsample.location.core
+package com.dsp.androidsample.ui.location.core
 
 import android.Manifest
 import android.content.Context
@@ -7,10 +7,11 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
-import com.dsp.androidsample.location.CustomLocationListener
-import com.dsp.androidsample.location.LocationEvent
-import com.dsp.androidsample.location.StateEvent
 import com.dsp.androidsample.log.Logger.w
+import com.dsp.androidsample.ui.location.CustomLocationListener
+import com.dsp.androidsample.ui.location.LocationEvent
+import com.dsp.androidsample.ui.location.StateEvent
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 class LocationManagerWrapper(private val context: Context) : CustomLocationListener() {
@@ -37,17 +38,35 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
 
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
             super.onStatusChanged(provider, status, extras)
-            subject.onNext(StateEvent("provider=$provider status=${status}"))
+            subject.onNext(
+                StateEvent(
+                    counter.incrementAndGet(),
+                    Date().time,
+                    "provider=$provider status=${status}"
+                )
+            )
         }
 
         override fun onProviderEnabled(provider: String?) {
             super.onProviderEnabled(provider)
-            subject.onNext(StateEvent("provider=$provider enabled"))
+            subject.onNext(
+                StateEvent(
+                    counter.incrementAndGet(),
+                    Date().time,
+                    "provider=$provider enabled"
+                )
+            )
         }
 
         override fun onProviderDisabled(provider: String?) {
             super.onProviderDisabled(provider)
-            subject.onNext(StateEvent("provider=$provider disabled"))
+            subject.onNext(
+                StateEvent(
+                    counter.incrementAndGet(),
+                    Date().time,
+                    "provider=$provider disabled"
+                )
+            )
         }
     }
 
@@ -56,7 +75,13 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
             != PackageManager.PERMISSION_GRANTED
         ) {
             w { "permission is not granted" }
-            subject.onNext(StateEvent("Location permission is not granted"))
+            subject.onNext(
+                StateEvent(
+                    counter.incrementAndGet(),
+                    Date().time,
+                    "Location permission is not granted"
+                )
+            )
             return
         }
 

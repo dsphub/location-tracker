@@ -1,8 +1,11 @@
 package com.dsp.androidsample
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.annotation.StringRes
+import androidx.core.app.ActivityCompat
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 
@@ -20,3 +23,10 @@ var CompositeDisposable.add: Disposable?
     }
     get() = null
 
+
+fun Context.isLocationPermissionGranted(): Boolean {
+    return ActivityCompat.checkSelfPermission(
+        this,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+}

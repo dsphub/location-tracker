@@ -14,13 +14,19 @@ import androidx.core.app.NotificationCompat
 import com.dsp.androidsample.CustomNotificationManager
 import com.dsp.androidsample.SimpleNotification
 import com.dsp.androidsample.add
-import com.dsp.androidsample.location.LocationManagerFacade
+import com.dsp.androidsample.data.events.EventRepository
+import com.dsp.androidsample.data.events.db.EventEntity
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.e
 import com.dsp.androidsample.log.Logger.i
 import com.dsp.androidsample.ui.MainActivity
+import com.dsp.androidsample.ui.location.Event
+import com.dsp.androidsample.ui.location.LocationEvent
+import com.dsp.androidsample.ui.location.LocationManagerFacade
+import com.dsp.androidsample.ui.location.StateEvent
 import io.reactivex.disposables.CompositeDisposable
-
+import java.util.*
+import java.util.concurrent.Executors
 
 class LocationService : Service() {
     private val locationManager by lazy { LocationManagerFacade(this) }
@@ -32,6 +38,13 @@ class LocationService : Service() {
     private val disposer = CompositeDisposable()
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: WifiManager.WifiLock? = null
+
+    private val eventRepository by lazy {
+        EventRepository.getInstance(
+            this,
+            Executors.newSingleThreadExecutor()
+        )
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val stop: Boolean = intent?.getBooleanExtra(
@@ -87,19 +100,52 @@ class LocationService : Service() {
     override fun onCreate() {
         i { "onCreate" }
         super.onCreate()
+        eventRepository.clean()
         notificationManager.makeChannel()
         val n = createNotification("Started").build()
         startForeground(FG_LOCATION_NID, n)
         locationManager.enable()
 
         disposer.add = locationManager.locationObservable()
-            .subscribe({
-                d { "DBG $it" }
-                showNotification(it)
+            .subscribe({ event ->
+                handleEvent(event)
             }, {
-                e { "DBG failed: ${it.message}" }
+                e { "failed: ${it.message}" }
                 showNotification(it.message ?: "No error")
             })
+    }
+
+    private fun handleEvent(event: Event) {
+        val entity = when (event) {
+            is LocationEvent -> {
+                mapTo(event)
+            }
+            is StateEvent -> {
+                mapTo(event)
+            }
+            else -> {
+                e { "Unknown event type $event" }
+                return
+            }
+        }
+        eventRepository.addEvent(entity)
+        showNotification(entity.toString())
+    }
+
+    private fun mapTo(event: LocationEvent): EventEntity {
+        return EventEntity(
+            event.id,
+            Date(event.time),
+            "p=${event.provider} lat=${event.latitude} lon=${event.longitude} acc=${event.accuracy}"
+        )
+    }
+
+    private fun mapTo(event: StateEvent): EventEntity {
+        return EventEntity(
+            event.id,
+            Date(event.time),
+            "state: ${event.state}"
+        )
     }
 
     private fun showNotification(text: String) {
@@ -172,6 +218,5 @@ class LocationService : Service() {
     companion object {
         private const val FG_LOCATION_NID = 2
         const val EXTRA_ACTION_STOP = "started_from_notification"
-        const val channelId = "fg_channel"
     }
 }

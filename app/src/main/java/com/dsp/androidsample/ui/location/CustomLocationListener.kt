@@ -1,4 +1,4 @@
-package com.dsp.androidsample.location
+package com.dsp.androidsample.ui.location
 
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
@@ -15,6 +15,8 @@ data class LocationEvent(
 ) : Event
 
 data class StateEvent(
+    val id: Int,
+    val time: Long,
     val state: String
 ) : Event
 

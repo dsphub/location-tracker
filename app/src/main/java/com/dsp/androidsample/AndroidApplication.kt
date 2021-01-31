@@ -1,6 +1,7 @@
 package com.dsp.androidsample
 
 import android.app.Application
+import com.dsp.androidsample.di.eventModule
 import com.dsp.androidsample.di.historyModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -14,6 +15,7 @@ class AndroidApplication : Application() {
             androidContext(this@AndroidApplication)
             modules(
                 listOf(
+                    eventModule,
                     historyModule
                 )
             )

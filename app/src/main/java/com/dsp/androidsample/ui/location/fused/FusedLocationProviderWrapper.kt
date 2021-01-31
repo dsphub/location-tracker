@@ -1,16 +1,17 @@
-package com.dsp.androidsample.location.fused
+package com.dsp.androidsample.ui.location.fused
 
 import android.content.Context
 import android.os.Looper
 import androidx.annotation.MainThread
-import com.dsp.androidsample.location.CustomLocationListener
-import com.dsp.androidsample.location.LocationEvent
-import com.dsp.androidsample.location.StateEvent
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.w
+import com.dsp.androidsample.ui.location.CustomLocationListener
+import com.dsp.androidsample.ui.location.LocationEvent
+import com.dsp.androidsample.ui.location.StateEvent
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.location.*
+import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -37,7 +38,13 @@ class FusedLocationProviderWrapper(val context: Context) : CustomLocationListene
 
             override fun onLocationAvailability(availability: LocationAvailability?) {
                 availability?.let {
-                    subject.onNext(StateEvent("location availability=$availability"))
+                    subject.onNext(
+                        StateEvent(
+                            counter.incrementAndGet(),
+                            Date().time,
+                            "location availability=$availability"
+                        )
+                    )
                 }
             }
         }
@@ -58,17 +65,29 @@ class FusedLocationProviderWrapper(val context: Context) : CustomLocationListene
     @MainThread
     override fun enable() {
         d { "enable" }
-        val gpa = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
+        val gpa = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context)
         if (gpa != ConnectionResult.SUCCESS) {
             w { "GooglePlayService is not available" }
-            subject.onNext(StateEvent("GooglePlayService is not available"))
+            subject.onNext(
+                StateEvent(
+                    counter.incrementAndGet(),
+                    Date().time,
+                    "GooglePlayService is not available"
+                )
+            )
             return
         }
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
         try {
             fusedLocationClient.requestLocationUpdates(request, callback, Looper.getMainLooper())
         } catch (permissionRevoked: SecurityException) {
-            subject.onNext(StateEvent("location permission revoked"))
+            subject.onNext(
+                StateEvent(
+                    counter.incrementAndGet(),
+                    Date().time,
+                    "location permission revoked"
+                )
+            )
         }
     }
 

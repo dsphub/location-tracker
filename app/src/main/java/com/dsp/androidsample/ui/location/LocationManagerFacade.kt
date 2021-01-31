@@ -1,10 +1,10 @@
-package com.dsp.androidsample.location
+package com.dsp.androidsample.ui.location
 
 import android.content.Context
-import com.dsp.androidsample.location.core.LocationManagerWrapper
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.e
 import com.dsp.androidsample.service.SystemServiceFacade
+import com.dsp.androidsample.ui.location.core.LocationManagerWrapper
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import java.text.SimpleDateFormat
@@ -13,10 +13,11 @@ import java.util.*
 class LocationManagerFacade(private val context: Context) {
     private val locationManager: CustomLocationListener by lazy { LocationManagerWrapper(context) }
     private val serviceFacade = SystemServiceFacade(context)
-    private val subject = BehaviorSubject.create<String>()
+    private val subject = BehaviorSubject.create<Event>()
     private val dateFormatter = SimpleDateFormat("HH:mm:ss", Locale.US)
+    val events: Observable<Event> = locationManager.events
 
-    fun locationObservable(): Observable<String> = subject
+    fun locationObservable(): Observable<Event> = subject
 
     init {
         d { "init" }
@@ -41,11 +42,12 @@ class LocationManagerFacade(private val context: Context) {
         when (event) {
             is LocationEvent -> {
                 d { "location: ${event.id}: ${dateFormatter.format(Date())} p=${event.provider} lat=${event.latitude} lon=${event.longitude} acc=${event.accuracy}" }
-                val str =
-                    "${event.id}: ${dateFormatter.format(Date())} p=${event.provider} lat=${event.latitude} lon=${event.longitude}"
-                subject.onNext(str)
+                subject.onNext(event)
             }
-            is StateEvent -> d { "state: ${event.state}" }
+            is StateEvent -> {
+                d { "state: ${dateFormatter.format(Date())} ${event.state}" }
+                subject.onNext(event)
+            }
         }
     }
 

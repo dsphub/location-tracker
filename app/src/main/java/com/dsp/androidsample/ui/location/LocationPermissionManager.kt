@@ -1,4 +1,4 @@
-package com.dsp.androidsample.location
+package com.dsp.androidsample.ui.location
 
 import android.Manifest
 import android.content.Context
