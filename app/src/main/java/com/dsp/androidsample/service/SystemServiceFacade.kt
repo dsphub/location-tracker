@@ -139,9 +139,7 @@ class SystemServiceFacade(private val context: Context) {
         }
     }
 
-    private fun isActiveNetworkMetered() {
-        connectivityManager.isActiveNetworkMetered
-    }
+    private fun isActiveNetworkMetered() = connectivityManager.isActiveNetworkMetered
 
     fun registerNetworkCallback(callback: ConnectivityManager.NetworkCallback) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
