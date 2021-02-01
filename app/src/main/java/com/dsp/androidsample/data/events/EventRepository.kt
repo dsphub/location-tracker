@@ -17,6 +17,9 @@ class EventRepository private constructor(
 
     fun getEvents(): LiveData<List<EventEntity>> = eventDao.getEvents()
 
+    fun getEventsByChunk(limit: Int, offset: Int): LiveData<List<EventEntity>> =
+        eventDao.getEventsByChunk(limit, offset)
+
     fun getEvent(id: Int): LiveData<EventEntity> = eventDao.getEvent(id)
 
     fun updateEvent(myLocationEntity: EventEntity) {

@@ -19,6 +19,8 @@ class HistoryViewModel(
 
     val events = eventRepository.getEvents()
 
+    fun eventsByChunk(limit: Int, offset: Int) = eventRepository.getEventsByChunk(limit, offset)
+
     private val _location = MutableLiveData<String>()
     val location: LiveData<String>
         get() = _location
