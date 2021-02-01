@@ -22,7 +22,7 @@ class SystemServiceFacade(private val context: Context) {
         .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     private val locationManager: LocationManager = context
         .getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    private val powerService = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+    private val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
     private val telephonyManager =
         context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     private val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -31,8 +31,9 @@ class SystemServiceFacade(private val context: Context) {
     val wifiRssi = wifiManager.connectionInfo.rssi
     val wifiLevel = WifiManager.calculateSignalLevel(wifiRssi, 4)
 
-    fun logConnectivityMetered() {
+    fun logDataSaverPrefs() {
         d { "active network metered ${isActiveNetworkMetered()}" }
+        d { "restrictBackgroundStatus ${restrictBackgroundStatus()}" }
     }
 
     fun logSignalStrength() {
@@ -97,12 +98,12 @@ class SystemServiceFacade(private val context: Context) {
     }
 
     fun logScreenModes() {
-        d { "screenOn=${powerService.isInteractive}" }
+        d { "screenOn=${powerManager.isInteractive}" }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-            d { "locationPowerSaveMode=${powerService.locationPowerSaveMode}" }
+            d { "locationPowerSaveMode=${powerManager.locationPowerSaveMode}" }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            d { "idleMode=${powerService.isDeviceIdleMode}" }
-        d { "powerSaveMode=${powerService.isPowerSaveMode}" }
+            d { "idleMode=${powerManager.isDeviceIdleMode}" }
+        d { "powerSaveMode=${powerManager.isPowerSaveMode}" }
     }
 
     fun logLocationProviders() {
@@ -139,11 +140,26 @@ class SystemServiceFacade(private val context: Context) {
         }
     }
 
+    fun unregisterGnssStatusCallback(callback: GnssStatus.Callback) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { //FIXIT
+            locationManager.unregisterGnssStatusCallback(callback)
+        }
+    }
+
     private fun isActiveNetworkMetered() = connectivityManager.isActiveNetworkMetered
+    private fun restrictBackgroundStatus(): Int? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            connectivityManager.restrictBackgroundStatus
+        } else null
+    }
 
     fun registerNetworkCallback(callback: ConnectivityManager.NetworkCallback) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             connectivityManager.registerDefaultNetworkCallback(callback)
         }
+    }
+
+    fun unregisterNetworkCallback(callback: ConnectivityManager.NetworkCallback) {
+        connectivityManager.unregisterNetworkCallback(callback)
     }
 }

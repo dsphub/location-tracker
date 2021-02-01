@@ -30,7 +30,7 @@ class HistoryViewModel(
         get() = _error
 
     init {
-        d { "init gps=${serviceFacade.isGpsEnabled()}" }
+        d { "init gps=${serviceFacade.isGpsEnabled()} wifi=${serviceFacade.isWifiEnabled}" }
         if (!serviceFacade.isGpsEnabled()) {
             serviceFacade.enableGps()
         }
@@ -40,7 +40,7 @@ class HistoryViewModel(
     }
 
     fun setState(value: String) {
-        d { "setState: $value" }
+//        d { "setState: $value" }
         eventRepository.addEvent(EventEntity(0, Date(), value))
     }
 }

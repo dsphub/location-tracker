@@ -55,8 +55,67 @@ class LocationService : Service() {
         )
     }
 
+    private val gpsListener: GnssStatus.Callback? by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            object : GnssStatus.Callback() {
+                override fun onSatelliteStatusChanged(status: GnssStatus?) {
+                    setState("GPS satellites=${status?.satelliteCount}")
+                }
+
+                override fun onStarted() {
+                    setState("GPS started")
+                }
+
+                override fun onFirstFix(ttffMillis: Int) {
+                    setState("GPS ttffMs=$ttffMillis")
+                }
+
+                override fun onStopped() {
+                    setState("GPS stopped")
+                }
+            }
+        } else {
+            null
+        }
+    }
+
+    private val networkListener: ConnectivityManager.NetworkCallback by lazy {
+        object : ConnectivityManager.NetworkCallback() {
+            override fun onBlockedStatusChanged(network: Network, blocked: Boolean) {
+                setState("network blocked=$blocked $network")
+            }
+
+            override fun onCapabilitiesChanged(
+                network: Network,
+                networkCapabilities: NetworkCapabilities
+            ) {
+                setState("network capabilities changed $network $networkCapabilities")
+            }
+
+            override fun onLost(network: Network) {
+                setState("network lost $network")
+            }
+
+            override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
+                setState("network link properties changed $network")
+            }
+
+            override fun onUnavailable() {
+                setState("network unavailable")
+            }
+
+            override fun onLosing(network: Network, maxMsToLive: Int) {
+                setState("network losing=$maxMsToLive $network")
+            }
+
+            override fun onAvailable(network: Network) {
+                setState("network available")
+            }
+        }
+    }
+
     fun setState(value: String) {
-        d { "setState: $value" }
+//DBG        d { "setState: $value" }
         eventRepository.addEvent(EventEntity(0, Date(), value))
     }
 
@@ -65,7 +124,7 @@ class LocationService : Service() {
             EXTRA_ACTION_STOP,
             false
         ) ?: false
-        i { " onStartCommand stop=$stop" }
+        i { "onStartCommand stop=$stop" }
         if (stop) {
             locationManager.disable()
             stopSelf()
@@ -99,6 +158,7 @@ class LocationService : Service() {
         d { "onDestroy" }
         stopWakeLock()
         eventRepository.clean()
+        stopLogStates()
         super.onDestroy()
     }
 
@@ -113,6 +173,13 @@ class LocationService : Service() {
         }
     }
 
+    private fun stopLogStates() {
+        serviceFacade.unregisterNetworkCallback(networkListener)
+        gpsListener?.let {
+            serviceFacade.unregisterGnssStatusCallback(it)
+        }
+    }
+
     override fun onCreate() {
         i { "onCreate" }
         super.onCreate()
@@ -120,68 +187,23 @@ class LocationService : Service() {
         notificationManager.makeChannel()
         val n = createNotification("Started").build()
         startForeground(FG_LOCATION_NID, n)
-        logStates()
-        locationManager.enable()
-        disposer.add = locationManager.locationObservable()
+        startLogStates()
+        disposer.add = locationManager.events
             .subscribe({ event ->
                 handleEvent(event)
             }, {
                 e { "failed: ${it.message}" }
                 showNotification(it.message ?: "No error")
             })
+        locationManager.enable()
 
         setState("service is started")
     }
 
-    private fun logStates() {
-        serviceFacade.registerNetworkCallback(object : ConnectivityManager.NetworkCallback() {
-            override fun onBlockedStatusChanged(network: Network, blocked: Boolean) {
-                setState("network blocked=$blocked")
-            }
-
-            override fun onCapabilitiesChanged(
-                network: Network,
-                networkCapabilities: NetworkCapabilities
-            ) {
-            }
-
-            override fun onLost(network: Network) {
-                setState("network lost")
-            }
-
-            override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
-                super.onLinkPropertiesChanged(network, linkProperties)
-            }
-
-            override fun onUnavailable() {
-                setState("network unavailable")
-            }
-
-            override fun onLosing(network: Network, maxMsToLive: Int) {
-                setState("network losing=$maxMsToLive")
-            }
-
-            override fun onAvailable(network: Network) {
-                setState("network available")
-            }
-        })
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            serviceFacade.registerGnssStatusCallback(object : GnssStatus.Callback() {
-                override fun onSatelliteStatusChanged(status: GnssStatus?) {
-                    setState("GPS SatelliteStatusChanged")
-                }
-
-                override fun onStarted() {
-                    setState("GPS started")
-                }
-
-                override fun onFirstFix(ttffMillis: Int) {
-                }
-
-                override fun onStopped() {
-                    setState("GPS stopped")
-                }
-            })
+    private fun startLogStates() {
+        serviceFacade.registerNetworkCallback(networkListener)
+        gpsListener?.let {
+            serviceFacade.registerGnssStatusCallback(it)
         }
     }
 

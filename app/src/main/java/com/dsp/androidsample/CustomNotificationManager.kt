@@ -46,7 +46,7 @@ class CustomNotificationManager(private val appContext: Context) {
     }
 
     fun show(id: Int, builder: NotificationCompat.Builder) {
-        d { "TID=${Thread.currentThread().name} show notification id=$id" }
+//DBG        d { "TID=${Thread.currentThread().name} show notification id=$id" }
         with(NotificationManagerCompat.from(appContext)) {
             newNotification(id, builder).let {
                 notify(id, it.build())

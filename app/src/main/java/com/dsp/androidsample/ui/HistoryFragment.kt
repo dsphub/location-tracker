@@ -78,8 +78,8 @@ class HistoryFragment : Fragment() {
         i { "onViewCreated" }
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
-        viewModel.events.observe(viewLifecycleOwner, Observer { evets ->
-            val data = evets.map {
+        viewModel.events.observe(viewLifecycleOwner, Observer { events ->
+            val data = events.map {
                 EventItem(
                     "${it.id} ${SimpleDateFormat(
                         "HH:mm:ss",
@@ -87,7 +87,6 @@ class HistoryFragment : Fragment() {
                     ).format(it.date)} ${it.value}"
                 )
             }.toList()
-            d { "update ${data.size} items" }
             adapter.setData(data)
         })
         viewModel.location.observe(viewLifecycleOwner, Observer {

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
@@ -17,9 +18,8 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
     private val locationManager: LocationManager = context
         .getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-    private val listener = object : LocationListenerAdapter() {
+    private val listener = object : LocationListener {
         override fun onLocationChanged(location: Location?) {
-            super.onLocationChanged(location)
             location?.let {
                 subject.onNext(
                     LocationEvent(
@@ -34,7 +34,6 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
         }
 
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-            super.onStatusChanged(provider, status, extras)
             subject.onNext(
                 StateEvent(
                     Date().time,
@@ -44,7 +43,6 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
         }
 
         override fun onProviderEnabled(provider: String?) {
-            super.onProviderEnabled(provider)
             subject.onNext(
                 StateEvent(
                     Date().time,
@@ -54,7 +52,6 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
         }
 
         override fun onProviderDisabled(provider: String?) {
-            super.onProviderDisabled(provider)
             subject.onNext(
                 StateEvent(
                     Date().time,

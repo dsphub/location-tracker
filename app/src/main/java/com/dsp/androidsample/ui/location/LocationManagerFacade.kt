@@ -2,7 +2,6 @@ package com.dsp.androidsample.ui.location
 
 import android.content.Context
 import com.dsp.androidsample.log.Logger.d
-import com.dsp.androidsample.log.Logger.e
 import com.dsp.androidsample.service.SystemServiceFacade
 import com.dsp.androidsample.ui.location.core.LocationManagerWrapper
 import io.reactivex.Observable
@@ -17,7 +16,7 @@ class LocationManagerFacade(private val context: Context) {
     private val dateFormatter = SimpleDateFormat("HH:mm:ss", Locale.US)
     val events: Observable<Event> = locationManager.events
 
-    fun locationObservable(): Observable<Event> = subject
+//    fun locationObservable(): Observable<Event> = subject
 
     init {
         d { "init" }
@@ -25,10 +24,11 @@ class LocationManagerFacade(private val context: Context) {
 
     fun enable() {
         d { "enable" }
-        serviceFacade.logConnectivityMetered()
+        serviceFacade.logDataSaverPrefs()
         serviceFacade.logLocationProviders()
         serviceFacade.logSignalStrength()
         serviceFacade.logScreenModes()
+/*
         locationManager.events.subscribe(
             {
                 logEvent(it)
@@ -36,6 +36,7 @@ class LocationManagerFacade(private val context: Context) {
             {
                 e { "subscribe location failed: $it" }
             })
+*/
         locationManager.enable()
     }
 
