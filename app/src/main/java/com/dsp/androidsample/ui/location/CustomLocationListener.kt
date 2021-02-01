@@ -6,7 +6,6 @@ import io.reactivex.subjects.BehaviorSubject
 interface Event
 
 data class LocationEvent(
-    val id: Int,
     val provider: String,
     val time: Long,
     val latitude: Double,
@@ -15,12 +14,12 @@ data class LocationEvent(
 ) : Event
 
 data class StateEvent(
-    val id: Int,
     val time: Long,
     val state: String
 ) : Event
 
 data class ErrorEvent(
+    val time: Long,
     val message: String
 ) : Event
 

@@ -12,12 +12,10 @@ import com.dsp.androidsample.ui.location.CustomLocationListener
 import com.dsp.androidsample.ui.location.LocationEvent
 import com.dsp.androidsample.ui.location.StateEvent
 import java.util.*
-import java.util.concurrent.atomic.AtomicInteger
 
 class LocationManagerWrapper(private val context: Context) : CustomLocationListener() {
     private val locationManager: LocationManager = context
         .getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    private val counter: AtomicInteger = AtomicInteger()
 
     private val listener = object : LocationListenerAdapter() {
         override fun onLocationChanged(location: Location?) {
@@ -25,7 +23,6 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
             location?.let {
                 subject.onNext(
                     LocationEvent(
-                        counter.incrementAndGet(),
                         it.provider,
                         it.time,
                         it.latitude,
@@ -40,7 +37,6 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
             super.onStatusChanged(provider, status, extras)
             subject.onNext(
                 StateEvent(
-                    counter.incrementAndGet(),
                     Date().time,
                     "provider=$provider status=${status}"
                 )
@@ -51,7 +47,6 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
             super.onProviderEnabled(provider)
             subject.onNext(
                 StateEvent(
-                    counter.incrementAndGet(),
                     Date().time,
                     "provider=$provider enabled"
                 )
@@ -62,7 +57,6 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
             super.onProviderDisabled(provider)
             subject.onNext(
                 StateEvent(
-                    counter.incrementAndGet(),
                     Date().time,
                     "provider=$provider disabled"
                 )
@@ -77,7 +71,6 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
             w { "permission is not granted" }
             subject.onNext(
                 StateEvent(
-                    counter.incrementAndGet(),
                     Date().time,
                     "Location permission is not granted"
                 )

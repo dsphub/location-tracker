@@ -7,7 +7,7 @@ import java.util.*
 
 @Entity(tableName = "events")
 data class EventEntity(
-    @PrimaryKey val id: Int,
+    @PrimaryKey var id: Int,
     val date: Date = Date(),
     val value: String = ""
 ) {

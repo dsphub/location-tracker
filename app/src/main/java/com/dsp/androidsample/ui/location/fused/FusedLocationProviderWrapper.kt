@@ -40,7 +40,6 @@ class FusedLocationProviderWrapper(val context: Context) : CustomLocationListene
                 availability?.let {
                     subject.onNext(
                         StateEvent(
-                            counter.incrementAndGet(),
                             Date().time,
                             "location availability=$availability"
                         )
@@ -52,7 +51,6 @@ class FusedLocationProviderWrapper(val context: Context) : CustomLocationListene
 
     private fun mapToEvent(result: LocationResult): LocationEvent {
         return LocationEvent(
-            counter.incrementAndGet(),
             result.lastLocation.provider,
             result.lastLocation.time,
             result.lastLocation.latitude,
@@ -70,7 +68,6 @@ class FusedLocationProviderWrapper(val context: Context) : CustomLocationListene
             w { "GooglePlayService is not available" }
             subject.onNext(
                 StateEvent(
-                    counter.incrementAndGet(),
                     Date().time,
                     "GooglePlayService is not available"
                 )
@@ -83,7 +80,6 @@ class FusedLocationProviderWrapper(val context: Context) : CustomLocationListene
         } catch (permissionRevoked: SecurityException) {
             subject.onNext(
                 StateEvent(
-                    counter.incrementAndGet(),
                     Date().time,
                     "location permission revoked"
                 )

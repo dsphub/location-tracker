@@ -25,6 +25,7 @@ class LocationManagerFacade(private val context: Context) {
 
     fun enable() {
         d { "enable" }
+        serviceFacade.logConnectivityMetered()
         serviceFacade.logLocationProviders()
         serviceFacade.logSignalStrength()
         serviceFacade.logScreenModes()
@@ -41,7 +42,7 @@ class LocationManagerFacade(private val context: Context) {
     private fun logEvent(event: Event) {
         when (event) {
             is LocationEvent -> {
-                d { "location: ${event.id}: ${dateFormatter.format(Date())} p=${event.provider} lat=${event.latitude} lon=${event.longitude} acc=${event.accuracy}" }
+                d { "location: ${dateFormatter.format(Date())} p=${event.provider} lat=${event.latitude} lon=${event.longitude} acc=${event.accuracy}" }
                 subject.onNext(event)
             }
             is StateEvent -> {

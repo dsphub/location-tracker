@@ -1,18 +1,25 @@
 package com.dsp.androidsample.service
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.GnssStatus
 import android.location.LocationManager
+import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import android.telephony.*
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.w
 
 class SystemServiceFacade(private val context: Context) {
+    private val connectivityManager: ConnectivityManager = context
+        .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     private val locationManager: LocationManager = context
         .getSystemService(Context.LOCATION_SERVICE) as LocationManager
     private val powerService = context.getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -23,6 +30,10 @@ class SystemServiceFacade(private val context: Context) {
     val isWifiEnabled = wifiManager.isWifiEnabled
     val wifiRssi = wifiManager.connectionInfo.rssi
     val wifiLevel = WifiManager.calculateSignalLevel(wifiRssi, 4)
+
+    fun logConnectivityMetered() {
+        d { "active network metered ${isActiveNetworkMetered()}" }
+    }
 
     fun logSignalStrength() {
         logWifiSignalStrength()
@@ -113,5 +124,28 @@ class SystemServiceFacade(private val context: Context) {
         val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
+    }
+
+    fun registerGnssStatusCallback(callback: GnssStatus.Callback) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { //FIXIT
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            locationManager.registerGnssStatusCallback(callback)
+        }
+    }
+
+    private fun isActiveNetworkMetered() {
+        connectivityManager.isActiveNetworkMetered
+    }
+
+    fun registerNetworkCallback(callback: ConnectivityManager.NetworkCallback) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            connectivityManager.registerDefaultNetworkCallback(callback)
+        }
     }
 }

@@ -39,8 +39,10 @@ class HistoryFragment : Fragment() {
         when {
             requireContext().isLocationPermissionGranted() -> {
                 d { "permission is granted" }
+                viewModel.setState("permission is granted")
             }
             else -> {
+                viewModel.setState("permission is not granted")
                 ActivityCompat.requestPermissions(
                     requireActivity(), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                     REQUEST_CODE_LOCATION

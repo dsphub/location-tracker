@@ -6,8 +6,14 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.location.GnssStatus
+import android.net.ConnectivityManager
+import android.net.LinkProperties
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
@@ -35,7 +41,10 @@ class LocationService : Service() {
         get() = (this.getSystemService(Context.POWER_SERVICE) as PowerManager)
     private val wifiManager
         get() = this.getSystemService(Context.WIFI_SERVICE) as WifiManager
+    private val serviceFacade by lazy { SystemServiceFacade(this) }
+
     private val disposer = CompositeDisposable()
+
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: WifiManager.WifiLock? = null
 
@@ -44,6 +53,11 @@ class LocationService : Service() {
             this,
             Executors.newSingleThreadExecutor()
         )
+    }
+
+    fun setState(value: String) {
+        d { "setState: $value" }
+        eventRepository.addEvent(EventEntity(0, Date(), value))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -55,6 +69,7 @@ class LocationService : Service() {
         if (stop) {
             locationManager.disable()
             stopSelf()
+            setState("service is stopped")
             // Tells the system to not try to recreate the service after it has been killed
             return START_NOT_STICKY
         }
@@ -83,6 +98,7 @@ class LocationService : Service() {
     override fun onDestroy() {
         d { "onDestroy" }
         stopWakeLock()
+        eventRepository.clean()
         super.onDestroy()
     }
 
@@ -104,8 +120,8 @@ class LocationService : Service() {
         notificationManager.makeChannel()
         val n = createNotification("Started").build()
         startForeground(FG_LOCATION_NID, n)
+        logStates()
         locationManager.enable()
-
         disposer.add = locationManager.locationObservable()
             .subscribe({ event ->
                 handleEvent(event)
@@ -113,6 +129,60 @@ class LocationService : Service() {
                 e { "failed: ${it.message}" }
                 showNotification(it.message ?: "No error")
             })
+
+        setState("service is started")
+    }
+
+    private fun logStates() {
+        serviceFacade.registerNetworkCallback(object : ConnectivityManager.NetworkCallback() {
+            override fun onBlockedStatusChanged(network: Network, blocked: Boolean) {
+                setState("network blocked=$blocked")
+            }
+
+            override fun onCapabilitiesChanged(
+                network: Network,
+                networkCapabilities: NetworkCapabilities
+            ) {
+            }
+
+            override fun onLost(network: Network) {
+                setState("network lost")
+            }
+
+            override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
+                super.onLinkPropertiesChanged(network, linkProperties)
+            }
+
+            override fun onUnavailable() {
+                setState("network unavailable")
+            }
+
+            override fun onLosing(network: Network, maxMsToLive: Int) {
+                setState("network losing=$maxMsToLive")
+            }
+
+            override fun onAvailable(network: Network) {
+                setState("network available")
+            }
+        })
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            serviceFacade.registerGnssStatusCallback(object : GnssStatus.Callback() {
+                override fun onSatelliteStatusChanged(status: GnssStatus?) {
+                    setState("GPS SatelliteStatusChanged")
+                }
+
+                override fun onStarted() {
+                    setState("GPS started")
+                }
+
+                override fun onFirstFix(ttffMillis: Int) {
+                }
+
+                override fun onStopped() {
+                    setState("GPS stopped")
+                }
+            })
+        }
     }
 
     private fun handleEvent(event: Event) {
@@ -134,7 +204,7 @@ class LocationService : Service() {
 
     private fun mapTo(event: LocationEvent): EventEntity {
         return EventEntity(
-            event.id,
+            0,
             Date(event.time),
             "p=${event.provider} lat=${event.latitude} lon=${event.longitude} acc=${event.accuracy}"
         )
@@ -142,7 +212,7 @@ class LocationService : Service() {
 
     private fun mapTo(event: StateEvent): EventEntity {
         return EventEntity(
-            event.id,
+            0,
             Date(event.time),
             "state: ${event.state}"
         )
