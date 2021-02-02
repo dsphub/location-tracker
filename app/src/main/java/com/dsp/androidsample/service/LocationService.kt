@@ -109,7 +109,7 @@ class LocationService : Service() {
             }
 
             override fun onAvailable(network: Network) {
-                setState("network available")
+                setState("network available $network")
             }
         }
     }
