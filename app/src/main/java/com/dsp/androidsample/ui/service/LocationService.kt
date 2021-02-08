@@ -19,6 +19,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
+import com.dsp.androidsample.BuildConfig
 import com.dsp.androidsample.CustomNotificationManager
 import com.dsp.androidsample.SimpleNotification
 import com.dsp.androidsample.add
@@ -185,7 +186,7 @@ class LocationService : Service() {
     }
 
     override fun onCreate() {
-        i { "onCreate" }
+        i { "onCreate version=${BuildConfig.VERSION_NAME}" }
         super.onCreate()
         eventRepository.clean()
         notificationManager.makeChannel()
