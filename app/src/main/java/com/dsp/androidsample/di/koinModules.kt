@@ -1,7 +1,7 @@
 package com.dsp.androidsample.di
 
 import com.dsp.androidsample.data.events.EventRepository
-import com.dsp.androidsample.ui.HistoryViewModel
+import com.dsp.androidsample.ui.history.HistoryViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
@@ -12,5 +12,10 @@ val eventModule = module {
 }
 
 val historyModule = module {
-    factory { HistoryViewModel(androidApplication(), get()) }
+    factory {
+        HistoryViewModel(
+            androidApplication(),
+            get()
+        )
+    }
 }

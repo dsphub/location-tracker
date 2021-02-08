@@ -1,9 +1,9 @@
-package com.dsp.androidsample.ui.location
+package com.dsp.androidsample.ui.service.location
 
 import android.content.Context
 import com.dsp.androidsample.log.Logger.d
-import com.dsp.androidsample.service.SystemServiceFacade
-import com.dsp.androidsample.ui.location.core.LocationManagerWrapper
+import com.dsp.androidsample.ui.service.SystemServiceFacade
+import com.dsp.androidsample.ui.service.location.core.LocationManagerWrapper
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import java.text.SimpleDateFormat

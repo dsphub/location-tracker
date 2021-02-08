@@ -15,7 +15,9 @@ import com.dsp.androidsample.R
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.i
 import com.dsp.androidsample.log.Logger.w
-import com.dsp.androidsample.service.LocationService
+import com.dsp.androidsample.ui.history.HistoryFragment
+import com.dsp.androidsample.ui.history.HistoryViewModel
+import com.dsp.androidsample.ui.service.LocationService
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class MainActivity : AppCompatActivity(), HistoryFragment.Callbacks {

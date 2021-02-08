@@ -1,13 +1,13 @@
-package com.dsp.androidsample.ui.location.fused
+package com.dsp.androidsample.ui.service.location.fused
 
 import android.content.Context
 import android.os.Looper
 import androidx.annotation.MainThread
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.w
-import com.dsp.androidsample.ui.location.CustomLocationListener
-import com.dsp.androidsample.ui.location.LocationEvent
-import com.dsp.androidsample.ui.location.StateEvent
+import com.dsp.androidsample.ui.service.location.CustomLocationListener
+import com.dsp.androidsample.ui.service.location.LocationEvent
+import com.dsp.androidsample.ui.service.location.StateEvent
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.location.*

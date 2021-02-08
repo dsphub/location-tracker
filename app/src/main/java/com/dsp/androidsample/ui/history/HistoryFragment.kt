@@ -1,4 +1,4 @@
-package com.dsp.androidsample.ui
+package com.dsp.androidsample.ui.history
 
 import android.Manifest
 import android.content.Context
@@ -15,8 +15,8 @@ import com.dsp.androidsample.R
 import com.dsp.androidsample.isLocationPermissionGranted
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.i
-import com.dsp.androidsample.ui.adapter.EventItem
-import com.dsp.androidsample.ui.adapter.HistoryAdapter
+import com.dsp.androidsample.ui.history.adapter.EventItem
+import com.dsp.androidsample.ui.history.adapter.HistoryAdapter
 import kotlinx.android.synthetic.main.history_fragment.*
 import org.koin.android.viewmodel.ext.android.sharedViewModel
 import java.text.SimpleDateFormat

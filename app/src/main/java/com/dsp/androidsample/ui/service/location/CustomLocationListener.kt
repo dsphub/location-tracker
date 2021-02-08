@@ -1,4 +1,4 @@
-package com.dsp.androidsample.ui.location
+package com.dsp.androidsample.ui.service.location
 
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject

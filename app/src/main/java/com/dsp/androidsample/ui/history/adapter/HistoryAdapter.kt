@@ -1,4 +1,4 @@
-package com.dsp.androidsample.ui.adapter
+package com.dsp.androidsample.ui.history.adapter
 
 import android.view.LayoutInflater
 import android.view.View

@@ -1,4 +1,4 @@
-package com.dsp.androidsample.ui.location.core
+package com.dsp.androidsample.ui.service.location.core
 
 import android.Manifest
 import android.content.Context
@@ -9,9 +9,9 @@ import android.location.LocationManager
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import com.dsp.androidsample.log.Logger.w
-import com.dsp.androidsample.ui.location.CustomLocationListener
-import com.dsp.androidsample.ui.location.LocationEvent
-import com.dsp.androidsample.ui.location.StateEvent
+import com.dsp.androidsample.ui.service.location.CustomLocationListener
+import com.dsp.androidsample.ui.service.location.LocationEvent
+import com.dsp.androidsample.ui.service.location.StateEvent
 import java.util.*
 
 class LocationManagerWrapper(private val context: Context) : CustomLocationListener() {

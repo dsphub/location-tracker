@@ -1,11 +1,13 @@
-package com.dsp.androidsample.service
+package com.dsp.androidsample.ui.service
 
 import android.app.ActivityManager
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.location.GnssStatus
 import android.net.ConnectivityManager
 import android.net.LinkProperties
@@ -26,10 +28,10 @@ import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.e
 import com.dsp.androidsample.log.Logger.i
 import com.dsp.androidsample.ui.MainActivity
-import com.dsp.androidsample.ui.location.Event
-import com.dsp.androidsample.ui.location.LocationEvent
-import com.dsp.androidsample.ui.location.LocationManagerFacade
-import com.dsp.androidsample.ui.location.StateEvent
+import com.dsp.androidsample.ui.service.location.Event
+import com.dsp.androidsample.ui.service.location.LocationEvent
+import com.dsp.androidsample.ui.service.location.LocationManagerFacade
+import com.dsp.androidsample.ui.service.location.StateEvent
 import io.reactivex.disposables.CompositeDisposable
 import java.util.*
 import java.util.concurrent.Executors
@@ -47,7 +49,7 @@ class LocationService : Service() {
 
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: WifiManager.WifiLock? = null
-
+    private lateinit var idleReceiver: BroadcastReceiver
     private val eventRepository by lazy {
         EventRepository.getInstance(
             this,
@@ -127,6 +129,8 @@ class LocationService : Service() {
         i { "onStartCommand stop=$stop" }
         if (stop) {
             locationManager.disable()
+            disposer.dispose()
+            unregisterReceiver(idleReceiver)
             stopSelf()
             setState("service is stopped")
             // Tells the system to not try to recreate the service after it has been killed
@@ -196,7 +200,7 @@ class LocationService : Service() {
                 showNotification(it.message ?: "No error")
             })
         locationManager.enable()
-
+        registerIdleReceiver()
         setState("service is started")
     }
 
@@ -250,6 +254,25 @@ class LocationService : Service() {
         } else {
             val n = createNotification(text).build()
             startForeground(FG_LOCATION_NID, n)
+        }
+    }
+
+    private fun registerIdleReceiver() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val filter = IntentFilter().apply {
+                addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
+                addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
+            }
+            d { "registerIdleReceiver" }
+            idleReceiver = DeviceIdleReceiver()
+            disposer.add = (idleReceiver as DeviceIdleReceiver).observable
+                .subscribe({ (saveMode, idleMode) ->
+                    setState("PowerManager STATE: saveMode=$saveMode, idleMode=$idleMode")
+                }, {
+                    e { "failed: ${it.message}" }
+                    setState("failed IdleMode: ${it.message}")
+                })
+            registerReceiver(idleReceiver, filter)
         }
     }
 

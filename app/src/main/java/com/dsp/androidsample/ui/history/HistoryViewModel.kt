@@ -1,4 +1,4 @@
-package com.dsp.androidsample.ui
+package com.dsp.androidsample.ui.history
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -8,7 +8,7 @@ import com.dsp.androidsample.data.events.EventRepository
 import com.dsp.androidsample.data.events.db.EventEntity
 import com.dsp.androidsample.isLocationPermissionGranted
 import com.dsp.androidsample.log.Logger.d
-import com.dsp.androidsample.service.SystemServiceFacade
+import com.dsp.androidsample.ui.service.SystemServiceFacade
 import java.util.*
 
 class HistoryViewModel(

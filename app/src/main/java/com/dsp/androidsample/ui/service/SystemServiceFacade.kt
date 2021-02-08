@@ -1,4 +1,4 @@
-package com.dsp.androidsample.service
+package com.dsp.androidsample.ui.service
 
 import android.Manifest
 import android.content.Context
