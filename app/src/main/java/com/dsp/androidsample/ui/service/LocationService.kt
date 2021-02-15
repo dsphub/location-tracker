@@ -1,9 +1,6 @@
 package com.dsp.androidsample.ui.service
 
-import android.app.ActivityManager
-import android.app.Notification
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -33,6 +30,7 @@ import com.dsp.androidsample.ui.service.location.Event
 import com.dsp.androidsample.ui.service.location.LocationEvent
 import com.dsp.androidsample.ui.service.location.LocationManagerFacade
 import com.dsp.androidsample.ui.service.location.StateEvent
+import com.dsp.androidsample.ui.service.location.doze.AlarmBroadcastReceiver
 import io.reactivex.disposables.CompositeDisposable
 import java.util.*
 import java.util.concurrent.Executors
@@ -185,6 +183,22 @@ class LocationService : Service() {
         }
     }
 
+    //    //region wakeup
+    private fun wakeup() {
+        d { "DBG wakeup" }
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(this, AlarmBroadcastReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, 0,
+            intent, PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            d { "DBG ALARM" }
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 30000, pendingIntent)
+        }
+    }
+    //endregion
+
     override fun onCreate() {
         i { "onCreate version=${BuildConfig.VERSION_NAME}" }
         super.onCreate()
@@ -203,6 +217,7 @@ class LocationService : Service() {
         locationManager.enable()
         registerIdleReceiver()
         setState("service is started")
+//        wakeup()
     }
 
     private fun startLogStates() {
@@ -269,9 +284,12 @@ class LocationService : Service() {
             disposer.add = (idleReceiver as DeviceIdleReceiver).observable
                 .subscribe({ (saveMode, idleMode) ->
                     setState("PowerManager STATE: saveMode=$saveMode, idleMode=$idleMode")
+                    if (idleMode) {
+                        wakeup()
+                    }
                 }, {
-                    e { "failed: ${it.message}" }
-                    setState("failed IdleMode: ${it.message}")
+                    e { "failed registerIdleReceiver: ${it.message}" }
+                    setState("failed registerIdleReceiver: ${it.message}")
                 })
             registerReceiver(idleReceiver, filter)
         }
