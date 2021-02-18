@@ -7,6 +7,7 @@ import androidx.legacy.content.WakefulBroadcastReceiver
 import com.dsp.androidsample.BuildConfig
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.ui.service.LocationService
+import com.dsp.androidsample.ui.service.LocationService.Companion.EXTRA_ACTION_WAKEUP
 
 class AlarmBroadcastReceiver : WakefulBroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -18,7 +19,9 @@ class AlarmBroadcastReceiver : WakefulBroadcastReceiver() {
             "${BuildConfig.APPLICATION_ID}:dozeLockTag"
         )
         wl.acquire(10 * 60 * 1000L /*10 minutes*/)
-        val intent = Intent(context, LocationService::class.java)
+        val intent = Intent(context, LocationService::class.java).apply {
+            putExtra(EXTRA_ACTION_WAKEUP, true)
+        }
         startWakefulService(context, intent)
         wl.release()
     }

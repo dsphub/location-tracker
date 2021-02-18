@@ -29,4 +29,5 @@ abstract class CustomLocationListener {
 
     abstract fun enable()
     abstract fun disable()
+    abstract fun getLastLocation(): Event
 }

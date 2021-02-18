@@ -125,6 +125,10 @@ class LocationService : Service() {
             EXTRA_ACTION_STOP,
             false
         ) ?: false
+        val wakeup: Boolean = intent?.getBooleanExtra(
+            EXTRA_ACTION_WAKEUP,
+            false
+        ) ?: false
         i { "onStartCommand stop=$stop" }
         if (stop) {
             locationManager.disable()
@@ -134,6 +138,9 @@ class LocationService : Service() {
             setState("service is stopped")
             // Tells the system to not try to recreate the service after it has been killed
             return START_NOT_STICKY
+        }
+        if (wakeup) {
+            handleEvent(locationManager.getLastLocation())
         }
         startWakeLock()
         return super.onStartCommand(intent, flags, startId)
@@ -192,6 +199,7 @@ class LocationService : Service() {
             this, 0,
             intent, PendingIntent.FLAG_UPDATE_CURRENT
         )
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             d { "DBG ALARM" }
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 30000, pendingIntent)
@@ -353,5 +361,6 @@ class LocationService : Service() {
     companion object {
         private const val FG_LOCATION_NID = 2
         const val EXTRA_ACTION_STOP = "started_from_notification"
+        const val EXTRA_ACTION_WAKEUP = "wakeup_on_idle"
     }
 }

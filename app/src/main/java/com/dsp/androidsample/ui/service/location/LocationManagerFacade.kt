@@ -53,6 +53,8 @@ class LocationManagerFacade(private val context: Context) {
         }
     }
 
+    fun getLastLocation(): Event = locationManager.getLastLocation()
+
     fun disable() {
         d { "disable" }
         locationManager.disable()

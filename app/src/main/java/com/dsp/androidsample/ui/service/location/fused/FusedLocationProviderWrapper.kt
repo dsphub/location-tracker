@@ -6,6 +6,7 @@ import androidx.annotation.MainThread
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.w
 import com.dsp.androidsample.ui.service.location.CustomLocationListener
+import com.dsp.androidsample.ui.service.location.Event
 import com.dsp.androidsample.ui.service.location.LocationEvent
 import com.dsp.androidsample.ui.service.location.StateEvent
 import com.google.android.gms.common.ConnectionResult
@@ -90,5 +91,9 @@ class FusedLocationProviderWrapper(val context: Context) : CustomLocationListene
     override fun disable() {
         d { "disable" }
         fusedLocationClient.removeLocationUpdates(callback)
+    }
+
+    override fun getLastLocation(): Event {
+        TODO("Not yet implemented")
     }
 }

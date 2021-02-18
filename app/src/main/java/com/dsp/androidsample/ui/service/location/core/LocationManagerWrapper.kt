@@ -8,8 +8,10 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
+import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.w
 import com.dsp.androidsample.ui.service.location.CustomLocationListener
+import com.dsp.androidsample.ui.service.location.Event
 import com.dsp.androidsample.ui.service.location.LocationEvent
 import com.dsp.androidsample.ui.service.location.StateEvent
 import java.util.*
@@ -97,6 +99,29 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
 
     override fun disable() {
         locationManager.removeUpdates(listener)
+    }
+
+    override fun getLastLocation(): Event {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            d { "getLastLocation gps" }
+            return locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).run {
+                if (this == null) {
+                    StateEvent(Date().time, "last location is unknown")
+                } else {
+                    LocationEvent(
+                        provider,
+                        time,
+                        latitude,
+                        longitude,
+                        accuracy
+                    )
+                }
+            }
+        } else {
+            throw IllegalStateException("location permission is not granted")
+        }
     }
 
     companion object {
