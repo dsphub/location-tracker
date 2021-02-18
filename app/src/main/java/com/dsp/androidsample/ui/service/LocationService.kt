@@ -11,10 +11,7 @@ import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
-import android.os.Binder
-import android.os.Build
-import android.os.IBinder
-import android.os.PowerManager
+import android.os.*
 import androidx.core.app.NotificationCompat
 import com.dsp.androidsample.BuildConfig
 import com.dsp.androidsample.CustomNotificationManager
@@ -190,7 +187,8 @@ class LocationService : Service() {
         }
     }
 
-    //    //region wakeup
+    //region wakeup
+    val handler by lazy { Handler() }
     private fun wakeup() {
         d { "DBG wakeup" }
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -199,11 +197,17 @@ class LocationService : Service() {
             this, 0,
             intent, PendingIntent.FLAG_UPDATE_CURRENT
         )
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            d { "DBG ALARM" }
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 30000, pendingIntent)
+        val task = Runnable {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                d { "DBG ALARM" }
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    30000,
+                    pendingIntent
+                )
+            }
         }
+        handler.postDelayed(task, 30000)
     }
     //endregion
 
