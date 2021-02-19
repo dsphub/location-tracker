@@ -28,9 +28,12 @@ import com.dsp.androidsample.ui.service.location.LocationEvent
 import com.dsp.androidsample.ui.service.location.LocationManagerFacade
 import com.dsp.androidsample.ui.service.location.StateEvent
 import com.dsp.androidsample.ui.service.location.doze.AlarmBroadcastReceiver
+import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import java.util.*
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class LocationService : Service() {
     private val locationManager by lazy { LocationManagerFacade(this) }
@@ -137,7 +140,8 @@ class LocationService : Service() {
             return START_NOT_STICKY
         }
         if (wakeup) {
-            handleEvent(locationManager.getLastLocation())
+            setState("alarmLocation: ${locationManager.getLastLocation()}")
+            setupExactAlarm()
         }
         startWakeLock()
         return super.onStartCommand(intent, flags, startId)
@@ -188,9 +192,18 @@ class LocationService : Service() {
     }
 
     //region wakeup
-    val handler by lazy { Handler() }
-    private fun wakeup() {
-        d { "DBG wakeup" }
+    private var lastLocationDisposable: Disposable? = null
+
+    private fun lastLocationOnIdle(): Observable<Event> {
+        return Observable.interval(LAST_LOCATION_ON_IDLE_RETRY_SEC, TimeUnit.SECONDS)
+            .map {
+                locationManager.getLastLocation()
+            }
+    }
+
+    private val handler by lazy { Handler() }
+    private fun setupExactAlarm() {
+        d { "DBG setupExactAlarm" }
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, AlarmBroadcastReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
@@ -199,15 +212,15 @@ class LocationService : Service() {
         )
         val task = Runnable {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                d { "DBG ALARM" }
+                d { "DBG setupExactAlarm and run" }
                 alarmManager.setExactAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP,
-                    30000,
+                    ALARM_TRIGGER_MS,
                     pendingIntent
                 )
             }
         }
-        handler.postDelayed(task, 30000)
+        handler.postDelayed(task, 0)
     }
     //endregion
 
@@ -297,7 +310,15 @@ class LocationService : Service() {
                 .subscribe({ (saveMode, idleMode) ->
                     setState("PowerManager STATE: saveMode=$saveMode, idleMode=$idleMode")
                     if (idleMode) {
-                        wakeup()
+                        lastLocationDisposable?.dispose()
+                        lastLocationDisposable = lastLocationOnIdle()
+                            .subscribe {
+                                setState("lastLocation: $it")
+                            }
+                        setupExactAlarm()
+                    } else {
+                        lastLocationDisposable?.dispose()
+                        lastLocationDisposable = null
                     }
                 }, {
                     e { "failed registerIdleReceiver: ${it.message}" }
@@ -366,5 +387,9 @@ class LocationService : Service() {
         private const val FG_LOCATION_NID = 2
         const val EXTRA_ACTION_STOP = "started_from_notification"
         const val EXTRA_ACTION_WAKEUP = "wakeup_on_idle"
+        private const val LAST_LOCATION_ON_IDLE_RETRY_SEC = 10L
+
+        // https://developer.android.com/training/monitoring-device-state/doze-standby#assessing_your_app
+        private const val ALARM_TRIGGER_MS = 1 * 60 * 1000L
     }
 }

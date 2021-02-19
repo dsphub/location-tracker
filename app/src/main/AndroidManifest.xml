@@ -23,7 +23,6 @@
             android:name="com.dsp.androidsample.ui.service.LocationService"
             android:enabled="true"
             android:exported="true"
-            android:process="com.dsp.fg"
             android:foregroundServiceType="location" />
 
         <activity android:name=".ui.MainActivity">
@@ -46,8 +45,7 @@
 
         <receiver
             android:name=".ui.service.location.doze.AlarmBroadcastReceiver"
-            android:enabled="true"
-            android:process="com.dsp.fg"></receiver>
+            android:enabled="true" />
 
     </application>
 
