@@ -186,8 +186,10 @@ class LocationService : Service() {
 
     private fun stopLogStates() {
         serviceFacade.unregisterNetworkCallback(networkListener)
-        gpsListener?.let {
-            serviceFacade.unregisterGnssStatusCallback(it)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            gpsListener?.let {
+                serviceFacade.unregisterGnssStatusCallback(it)
+            }
         }
     }
 
@@ -247,8 +249,10 @@ class LocationService : Service() {
 
     private fun startLogStates() {
         serviceFacade.registerNetworkCallback(networkListener)
-        gpsListener?.let {
-            serviceFacade.registerGnssStatusCallback(it)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            gpsListener?.let {
+                serviceFacade.registerGnssStatusCallback(it)
+            }
         }
     }
 
