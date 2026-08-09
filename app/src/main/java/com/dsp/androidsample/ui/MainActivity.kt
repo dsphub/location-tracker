@@ -18,7 +18,7 @@ import com.dsp.androidsample.log.Logger.w
 import com.dsp.androidsample.ui.history.HistoryFragment
 import com.dsp.androidsample.ui.history.HistoryViewModel
 import com.dsp.androidsample.ui.service.LocationService
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : AppCompatActivity(), HistoryFragment.Callbacks {
     private val viewModel: HistoryViewModel by viewModel()

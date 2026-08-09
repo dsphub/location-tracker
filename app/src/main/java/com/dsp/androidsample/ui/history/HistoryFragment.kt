@@ -8,17 +8,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dsp.androidsample.R
+import com.dsp.androidsample.databinding.HistoryFragmentBinding
 import com.dsp.androidsample.isLocationPermissionGranted
 import com.dsp.androidsample.log.Logger.d
 import com.dsp.androidsample.log.Logger.i
 import com.dsp.androidsample.ui.history.adapter.EventItem
 import com.dsp.androidsample.ui.history.adapter.HistoryAdapter
-import kotlinx.android.synthetic.main.history_fragment.*
-import org.koin.android.viewmodel.ext.android.sharedViewModel
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -70,15 +69,20 @@ class HistoryFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.history_fragment, container, false)
+    ): View {
+        return HistoryFragmentBinding.inflate(inflater, container, false).also {
+            _binding = it
+        }.root
     }
+
+    private var _binding: HistoryFragmentBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         i { "onViewCreated" }
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
-        viewModel.events.observe(viewLifecycleOwner, Observer { events ->
+        viewModel.events.observe(viewLifecycleOwner) { events ->
             val data = events.map {
                 EventItem(
                     "${it.id} ${SimpleDateFormat(
@@ -88,27 +92,32 @@ class HistoryFragment : Fragment() {
                 )
             }.toList()
             adapter.setData(data)
-        })
-        viewModel.location.observe(viewLifecycleOwner, Observer {
-            textView_history_location.text = it
-        })
-        viewModel.error.observe(viewLifecycleOwner, Observer {
-            textView_history_location.text = it
-        })
+        }
+        viewModel.location.observe(viewLifecycleOwner) {
+            binding.textViewHistoryLocation.text = it
+        }
+        viewModel.error.observe(viewLifecycleOwner) {
+            binding.textViewHistoryLocation.text = it
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun setupRecyclerView() {
-        listView_history_events.layoutManager = LinearLayoutManager(context).apply {
+        binding.listViewHistoryEvents.layoutManager = LinearLayoutManager(context).apply {
             stackFromEnd = true
         }
-        listView_history_events.adapter = this.adapter
-        (listView_history_events.adapter as HistoryAdapter).registerAdapterDataObserver(object :
+        binding.listViewHistoryEvents.adapter = this.adapter
+        (binding.listViewHistoryEvents.adapter as HistoryAdapter).registerAdapterDataObserver(object :
             RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
             }
 
             override fun onChanged() {
-                listView_history_events.smoothScrollToPosition(adapter.itemCount)
+                binding.listViewHistoryEvents.smoothScrollToPosition(adapter.itemCount)
             }
         })
     }
