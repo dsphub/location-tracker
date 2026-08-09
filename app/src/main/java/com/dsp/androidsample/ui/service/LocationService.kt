@@ -59,8 +59,8 @@ class LocationService : Service() {
     private val gpsListener: GnssStatus.Callback? by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             object : GnssStatus.Callback() {
-                override fun onSatelliteStatusChanged(status: GnssStatus?) {
-                    setState("GPS satellites=${status?.satelliteCount}")
+                override fun onSatelliteStatusChanged(status: GnssStatus) {
+                    setState("GPS satellites=${status.satelliteCount}")
                 }
 
                 override fun onStarted() {

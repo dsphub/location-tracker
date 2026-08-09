@@ -30,33 +30,30 @@ class FusedLocationProviderWrapper(val context: Context) : CustomLocationListene
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
         callback = object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult?) {
-                result?.let {
-                    d { "locations=${it.locations.size}" }
-                    subject.onNext(mapToEvent(result))
-                }
+            override fun onLocationResult(result: LocationResult) {
+                d { "locations=${result.locations.size}" }
+                mapToEvent(result)?.let { subject.onNext(it) }
             }
 
-            override fun onLocationAvailability(availability: LocationAvailability?) {
-                availability?.let {
-                    subject.onNext(
-                        StateEvent(
-                            Date().time,
-                            "location availability=$availability"
-                        )
+            override fun onLocationAvailability(availability: LocationAvailability) {
+                subject.onNext(
+                    StateEvent(
+                        Date().time,
+                        "location availability=$availability"
                     )
-                }
+                )
             }
         }
     }
 
-    private fun mapToEvent(result: LocationResult): LocationEvent {
+    private fun mapToEvent(result: LocationResult): LocationEvent? {
+        val location = result.lastLocation ?: return null
         return LocationEvent(
-            result.lastLocation.provider,
-            result.lastLocation.time,
-            result.lastLocation.latitude,
-            result.lastLocation.longitude,
-            result.lastLocation.accuracy
+            location.provider ?: "",
+            location.time,
+            location.latitude,
+            location.longitude,
+            location.accuracy
         )
     }
 

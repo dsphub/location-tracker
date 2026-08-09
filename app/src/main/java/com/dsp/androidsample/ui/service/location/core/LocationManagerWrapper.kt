@@ -21,21 +21,19 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
         .getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
     private val listener = object : LocationListener {
-        override fun onLocationChanged(location: Location?) {
-            location?.let {
-                subject.onNext(
-                    LocationEvent(
-                        it.provider,
-                        it.time,
-                        it.latitude,
-                        it.longitude,
-                        it.accuracy
-                    )
+        override fun onLocationChanged(location: Location) {
+            subject.onNext(
+                LocationEvent(
+                    location.provider ?: "",
+                    location.time,
+                    location.latitude,
+                    location.longitude,
+                    location.accuracy
                 )
-            }
+            )
         }
 
-        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+        override fun onStatusChanged(provider: String, status: Int, extras: Bundle?) {
             subject.onNext(
                 StateEvent(
                     Date().time,
@@ -44,7 +42,7 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
             )
         }
 
-        override fun onProviderEnabled(provider: String?) {
+        override fun onProviderEnabled(provider: String) {
             subject.onNext(
                 StateEvent(
                     Date().time,
@@ -53,7 +51,7 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
             )
         }
 
-        override fun onProviderDisabled(provider: String?) {
+        override fun onProviderDisabled(provider: String) {
             subject.onNext(
                 StateEvent(
                     Date().time,
@@ -111,7 +109,7 @@ class LocationManagerWrapper(private val context: Context) : CustomLocationListe
                     StateEvent(Date().time, "last location is unknown")
                 } else {
                     LocationEvent(
-                        provider,
+                        provider ?: "",
                         time,
                         latitude,
                         longitude,
