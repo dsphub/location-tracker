@@ -10,8 +10,9 @@ import com.dsp.ping.service.PingService
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
- * Точка входа с прозрачной темой: при уже настроенном хосте стартует сервис
- * и завершается без показа UI; иначе показывает Setup/Status экраны.
+ * Точка входа с прозрачной темой: без настроенного хоста показывает Setup-экран;
+ * иначе гарантирует запуск сервиса (если не работает) и показывает статусный экран —
+ * одинаково для тапа по иконке и по нотификации.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -21,27 +22,25 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         if (savedInstanceState == null) {
-            route(intent)
+            route()
         }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        route(intent)
+        route()
     }
 
-    private fun route(intent: Intent?) {
-        when {
-            intent?.getBooleanExtra(PingService.EXTRA_FROM_NOTIFICATION, false) == true ->
-                showStatus()
-
-            viewModel.isHostConfigured() -> {
-                startMonitoringAndFinish()
-            }
-
-            else -> showSetup()
+    private fun route() {
+        if (!viewModel.isHostConfigured()) {
+            showSetup()
+            return
         }
+        // Тап по иконке или нотификации: сервис должен работать,
+        // даже если был остановлен (Stop) или убит системой.
+        startMonitoring()
+        showStatus()
     }
 
     private fun showStatus() {
@@ -56,12 +55,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun startMonitoringAndFinish() {
+    private fun startMonitoring() {
         ContextCompat.startForegroundService(
             this,
             Intent(this, PingService::class.java)
                 .setAction(PingService.ACTION_START)
         )
-        finish()
     }
 }
