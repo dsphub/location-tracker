@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ping_green">#2E7D32</color>
+    <color name="ping_red">#C62828</color>
+    <color name="ping_gray">#9E9E9E</color>
+</resources>

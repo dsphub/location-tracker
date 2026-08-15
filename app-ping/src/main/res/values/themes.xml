@@ -1,0 +1,19 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="Theme.Ping" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/ping_green</item>
+        <item name="colorPrimaryDark">@color/ping_green</item>
+        <item name="colorAccent">@color/ping_green</item>
+    </style>
+
+    <!-- Translucent theme for future overlay/dialog usage. -->
+    <style name="Theme.Ping.Transparent" parent="Theme.Ping">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
+</resources>
