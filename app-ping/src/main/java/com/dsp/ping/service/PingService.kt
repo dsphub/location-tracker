@@ -21,11 +21,14 @@ import com.dsp.ping.data.PingRepository
 import com.dsp.ping.data.SettingsStore
 import com.dsp.ping.data.db.PingEntity
 import com.dsp.ping.data.network.NetworkMonitor
+import com.dsp.ping.icons.IconStatus
+import com.dsp.ping.icons.IconSwitcher
 import com.dsp.ping.notifications.AvailabilityCalculator
 import com.dsp.ping.notifications.PingNotificationManager
 import com.dsp.ping.ping.HttpPinger
 import com.dsp.ping.ping.PingResult
 import com.dsp.ping.ping.toStatus
+import com.dsp.ping.ping.toIconStatus
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -42,6 +45,7 @@ class PingService : Service() {
     private val networkMonitor: NetworkMonitor by inject()
     private val pinger: HttpPinger by inject()
     private val notificationManager: PingNotificationManager by inject()
+    private val iconSwitcher: IconSwitcher by inject()
 
     private val disposer = CompositeDisposable()
     private var wakeLock: PowerManager.WakeLock? = null
@@ -132,6 +136,7 @@ class PingService : Service() {
             )
         }
         repository.addResult(entity)
+        iconSwitcher.apply(result.toIconStatus())
 
         repository.requestAvailability24h { availability ->
             updateNotification(
@@ -163,6 +168,7 @@ class PingService : Service() {
         disposer.dispose()
         cancelAlarm()
         releaseWakeLock()
+        iconSwitcher.apply(IconStatus.GRAY)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
