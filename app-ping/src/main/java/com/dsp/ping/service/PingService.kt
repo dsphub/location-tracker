@@ -37,7 +37,12 @@ import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
 
 /**
- * Foreground-сервис периодического пинга (5 минут) с Doze-поддержкой через AlarmManager.
+ * Foreground-сервис периодического пинга с Doze-поддержкой через AlarmManager.
+ *
+ * Расписание: пинг выполняется сразу при старте сервиса, далее — на каждой
+ * 5-минутной границе wall-clock (:00, :05, :10, ...). Период зашит константой
+ * [PING_INTERVAL_MS]; оба планировщика (Rx-таймер и будильники) выравниваются
+ * по одному и тому же правилу [nextBoundaryTime].
  */
 class PingService : Service() {
 
@@ -74,8 +79,13 @@ class PingService : Service() {
         )
 
         acquireWakeLock()
+
+        // Пинг при старте: сразу, не дожидаясь ближайшей границы периода.
+        disposer.add(Schedulers.io().scheduleDirect { performPing() })
+
+        // Регулярные пинги: строго по границам периода опроса (:00, :05, :10, ...).
         disposer.add(
-            Observable.interval(0, PING_INTERVAL_MS, TimeUnit.MILLISECONDS)
+            Observable.interval(delayToNextBoundaryMs(), PING_INTERVAL_MS, TimeUnit.MILLISECONDS)
                 .observeOn(Schedulers.io())
                 .subscribe { performPing() }
         )
@@ -108,7 +118,12 @@ class PingService : Service() {
         if (isShutdown) return
         d { "=>performPing" }
         val now = System.currentTimeMillis()
-        if (now - lastPingAt < MIN_PING_INTERVAL_MS) return
+        if (now - lastPingAt < MIN_PING_INTERVAL_MS) {
+            // Дубликат от параллельных планировщиков (старт/граница, Rx/будильник):
+            // пинг пропускаем, но цепочку будильников не разрываем.
+            if (!isShutdown) scheduleNextAlarm()
+            return
+        }
         lastPingAt = now
 
         val host = settingsStore.getHost() ?: return
@@ -224,7 +239,7 @@ class PingService : Service() {
         if (isShutdown) return
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val pendingIntent = alarmPendingIntent()
-        val triggerAt = System.currentTimeMillis() + PING_INTERVAL_MS
+        val triggerAt = nextBoundaryTime()
 
         val exact = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
                 alarmManager.canScheduleExactAlarms()
@@ -256,12 +271,31 @@ class PingService : Service() {
 
     //endregion
 
+    //region period alignment
+
+    /**
+     * Ближайшая следующая граница периода опроса — момент wall-clock, кратный
+     * [PING_INTERVAL_MS]. Эпоха (1970-01-01 00:00:00 UTC) кратна 5 минутам, а смещения
+     * часовых поясов кратны 15 минутам, поэтому выравнивание по эпохе даёт границы
+     * :00/:05/:10 и в локальном времени.
+     */
+    private fun nextBoundaryTime(now: Long = System.currentTimeMillis()): Long =
+        (now / PING_INTERVAL_MS + 1) * PING_INTERVAL_MS
+
+    /** Задержка от текущего момента до ближайшей следующей границы периода. */
+    private fun delayToNextBoundaryMs(now: Long = System.currentTimeMillis()): Long =
+        nextBoundaryTime(now) - now
+
+    //endregion
+
     companion object {
         const val ACTION_START = "com.dsp.ping.action.START"
         const val ACTION_PING = "com.dsp.ping.action.PING"
         const val ACTION_CLOSE = "com.dsp.ping.action.CLOSE"
         const val EXTRA_FROM_NOTIFICATION = "com.dsp.ping.extra.FROM_NOTIFICATION"
         const val NOTIF_ID = 1001
+
+        /** Период опроса: зашит константой, включён всегда; пинги выравниваются по кратным ему границам. */
         const val PING_INTERVAL_MS = 5 * 60_000L
 
         private const val MIN_PING_INTERVAL_MS = 4 * 60_000L
