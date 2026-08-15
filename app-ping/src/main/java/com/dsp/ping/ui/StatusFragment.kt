@@ -49,6 +49,12 @@ class StatusFragment : Fragment() {
                 .replace(R.id.container, SetupFragment.newInstance())
                 .commit()
         }
+        binding.btnPingNow.setOnClickListener {
+            requireContext().startService(
+                Intent(requireContext(), PingService::class.java)
+                    .setAction(PingService.ACTION_PING_NOW)
+            )
+        }
         binding.btnStop.setOnClickListener {
             requireContext().startService(
                 Intent(requireContext(), PingService::class.java)

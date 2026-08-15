@@ -97,6 +97,10 @@ class PingService : Service() {
                 Schedulers.io().scheduleDirect { performPing() }
             )
 
+            ACTION_PING_NOW -> disposer.add(
+                Schedulers.io().scheduleDirect { performPing(force = true) }
+            )
+
             ACTION_CLOSE -> shutdown()
             else -> {
                 // ACTION_START / рестарт системы (null-intent): сервис уже работает.
@@ -114,11 +118,11 @@ class PingService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun performPing() {
+    private fun performPing(force: Boolean = false) {
         if (isShutdown) return
-        d { "=>performPing" }
+        d { "=>performPing force=$force" }
         val now = System.currentTimeMillis()
-        if (now - lastPingAt < MIN_PING_INTERVAL_MS) {
+        if (!force && now - lastPingAt < MIN_PING_INTERVAL_MS) {
             // Дубликат от параллельных планировщиков (старт/граница, Rx/будильник):
             // пинг пропускаем, но цепочку будильников не разрываем.
             if (!isShutdown) scheduleNextAlarm()
@@ -291,6 +295,7 @@ class PingService : Service() {
     companion object {
         const val ACTION_START = "com.dsp.ping.action.START"
         const val ACTION_PING = "com.dsp.ping.action.PING"
+        const val ACTION_PING_NOW = "com.dsp.ping.action.PING_NOW"
         const val ACTION_CLOSE = "com.dsp.ping.action.CLOSE"
         const val EXTRA_FROM_NOTIFICATION = "com.dsp.ping.extra.FROM_NOTIFICATION"
         const val NOTIF_ID = 1001

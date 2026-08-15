@@ -4,6 +4,7 @@
     <string name="ping_channel_name">Ping Tracker</string>
     <string name="ping_availability_format">Доступность %d%%</string>
     <string name="ping_availability_nd">Доступность: н/д</string>
+    <string name="ping_action_now">Ping</string>
     <string name="ping_action_close">Close</string>
     <string name="ping_action_close_intent">com.dsp.ping.action.CLOSE</string>
 
@@ -16,6 +17,7 @@
     <!-- Status -->
     <string name="btn_change_host">Сменить сайт</string>
     <string name="btn_stop">Остановить</string>
+    <string name="btn_ping_now">Пинг</string>
     <string name="status_online_format">Онлайн %1$d мс</string>
     <string name="status_error_format">Ошибка: %1$s</string>
     <string name="status_no_network">Нет сети</string>

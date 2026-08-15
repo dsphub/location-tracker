@@ -46,6 +46,7 @@ class PingNotificationManager(private val context: Context) {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(contentIntent())
+            .addAction(0, context.getString(R.string.ping_action_now), pingNowIntent())
             .addAction(0, context.getString(R.string.ping_action_close), closeIntent())
             .build()
     }
@@ -55,6 +56,13 @@ class PingNotificationManager(private val context: Context) {
         0,
         Intent(context, MainActivity::class.java)
             .putExtra(PingService.EXTRA_FROM_NOTIFICATION, true),
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+    )
+
+    private fun pingNowIntent(): PendingIntent = PendingIntent.getService(
+        context,
+        1,
+        Intent(context, PingService::class.java).setAction(PingService.ACTION_PING_NOW),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     )
 
