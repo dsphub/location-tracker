@@ -160,8 +160,18 @@ class PingService : Service() {
             )
         }
         d { "performPing $entity" }
-        repository.addResult(entity)
+        repository.addResult(entity) { onPingPersisted() }
         iconSwitcher.apply(result.toIconStatus())
+    }
+
+    /**
+     * Пост-действия после фактической записи результата в БД: обновление нотификации,
+     * перепланирование будильника и оповещение открытого UI (любой пинг — стартовый,
+     * по расписанию или ручной).
+     */
+    private fun onPingPersisted() {
+        if (isShutdown) return
+        val host = settingsStore.getHost() ?: return
 
         repository.requestAvailability24h { availability ->
             updateNotification(
@@ -169,6 +179,11 @@ class PingService : Service() {
                 AvailabilityCalculator.percent(availability.ok, availability.fail)
             )
         }
+
+        sendBroadcast(
+            Intent(ACTION_PING_COMPLETED)
+                .setPackage(packageName)
+        )
 
         if (!isShutdown) {
             scheduleNextAlarm()
@@ -297,6 +312,7 @@ class PingService : Service() {
         const val ACTION_PING = "com.dsp.ping.action.PING"
         const val ACTION_PING_NOW = "com.dsp.ping.action.PING_NOW"
         const val ACTION_CLOSE = "com.dsp.ping.action.CLOSE"
+        const val ACTION_PING_COMPLETED = "com.dsp.ping.action.PING_COMPLETED"
         const val EXTRA_FROM_NOTIFICATION = "com.dsp.ping.extra.FROM_NOTIFICATION"
         const val NOTIF_ID = 1001
 

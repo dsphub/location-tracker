@@ -1,10 +1,14 @@
 package com.dsp.ping.ui
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dsp.ping.R
@@ -27,6 +31,13 @@ class StatusFragment : Fragment() {
     private val binding get() = requireNotNull(_binding)
 
     private val adapter = HistoryAdapter()
+
+    /** Оповещение от сервиса о завершении пинга (ACTION_PING_COMPLETED). */
+    private val pingCompletedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            viewModel.refresh()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -65,6 +76,13 @@ class StatusFragment : Fragment() {
         viewModel.availability().observe(viewLifecycleOwner, ::showAvailability)
         viewModel.recentPings().observe(viewLifecycleOwner, ::showPings)
         viewModel.refresh()
+
+        ContextCompat.registerReceiver(
+            requireContext(),
+            pingCompletedReceiver,
+            IntentFilter(PingService.ACTION_PING_COMPLETED),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
     }
 
     private val currentHost: String
@@ -82,7 +100,12 @@ class StatusFragment : Fragment() {
     private fun showPings(pings: List<PingEntity>) {
         binding.tvStatus.text = pings.firstOrNull()?.let(::statusText)
             ?: getString(R.string.status_no_data)
-        adapter.submitList(pings)
+        // Новые записи — в позиции 0, но LinearLayoutManager держит якорь на прежней
+        // первой строке. Прокручиваем к вершине после применения списка, иначе
+        // последний результат не виден.
+        adapter.submitList(pings) {
+            binding.rvHistory.scrollToPosition(0)
+        }
     }
 
     private fun statusText(ping: PingEntity): String = when (ping.status) {
@@ -91,8 +114,16 @@ class StatusFragment : Fragment() {
         else -> getString(R.string.status_no_network)
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Стартовый пинг сервиса может завершиться до регистрации приёмника;
+        // обновляем также при каждом возвращении на экран.
+        viewModel.refresh()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        requireContext().unregisterReceiver(pingCompletedReceiver)
         _binding = null
     }
 

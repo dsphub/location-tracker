@@ -17,13 +17,18 @@ class PingRepository(
     private val mainThread = Handler(Looper.getMainLooper())
     private var insertCount = 0
 
-    fun addResult(ping: PingEntity) {
+    /**
+     * Записывает результат пинга; [onPersisted] вызывается на main-потоке после
+     * фактической вставки (и периодической чистки старых записей).
+     */
+    fun addResult(ping: PingEntity, onPersisted: () -> Unit = {}) {
         diskIo.execute {
             dao.insert(ping)
             insertCount++
             if (insertCount % PURGE_EVERY == 0) {
                 purgeOlderThan48h()
             }
+            mainThread.post(onPersisted)
         }
     }
 
