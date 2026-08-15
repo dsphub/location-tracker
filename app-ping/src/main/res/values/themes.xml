@@ -1,7 +1,8 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="Theme.Ping" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <!-- Base application theme. Parent must be Theme.MaterialComponents: TextInputLayout
+         and other Material widgets enforce this via ThemeEnforcement (crash otherwise). -->
+    <style name="Theme.Ping" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/ping_green</item>
         <item name="colorPrimaryDark">@color/ping_green</item>
