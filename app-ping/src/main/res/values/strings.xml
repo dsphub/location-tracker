@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Ping Tracker</string>
+
+    <string name="ping_channel_name">Ping Tracker</string>
+    <string name="ping_availability_format">Доступность %d%%</string>
+    <string name="ping_availability_nd">Доступность: н/д</string>
+    <string name="ping_action_close">Close</string>
+    <string name="ping_action_close_intent">com.dsp.ping.action.CLOSE</string>
 </resources>

@@ -29,6 +29,23 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".service.PingService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <receiver
+            android:name=".service.PingAlarmReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".service.CloseActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.dsp.ping.action.CLOSE" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>
