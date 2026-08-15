@@ -15,10 +15,19 @@ import java.net.URL
  * - [PingResult.Ok] — получен любой HTTP status (включая 4xx/5xx — сервер отвечает);
  *   [latencyMs] замеряется [SystemClock.elapsedRealtime] вокруг connect + чтения responseCode;
  * - [PingResult.Fail] — [IOException]/таймаут; [PingResult.Fail.error] = `e.message ?: e.javaClass.simpleName`.
+ *
+ * Если HTTPS-рукопожатие падает из-за недоверенной цепочки сертификатов (например, сервер
+ * не отдаёт промежуточный сертификат), выполняется повторная попытка по HTTP:
+ * для пингера доступности сам факт ответа сервера важнее шифрования канала.
  */
 class HttpPinger {
 
     fun ping(host: String): PingResult {
+        val httpsResult = pingUrl(host)
+        return if (isTrustFailure(httpsResult)) downgradeToHttp(host) else httpsResult
+    }
+
+    private fun pingUrl(host: String): PingResult {
         var connection: HttpURLConnection? = null
         try {
             connection = openConnection(host, METHOD_HEAD)
@@ -38,6 +47,19 @@ class HttpPinger {
         } finally {
             connection?.disconnect()
         }
+    }
+
+    /**
+     * Ошибка доверия сертификата: сервер представил цепочку, которую не удаётся построить
+     * до доверенного корня (Trust anchor for certification path not found и подобные).
+     * HTTP 4xx/5xx сюда не попадают — это успешный ответ сервера.
+     */
+    private fun isTrustFailure(result: PingResult): Boolean =
+        result is PingResult.Fail && result.error.contains("cert", ignoreCase = true)
+
+    private fun downgradeToHttp(host: String): PingResult {
+        val httpUrl = host.replaceFirst(Regex("^https://", RegexOption.IGNORE_CASE), "http://")
+        return pingUrl(httpUrl)
     }
 
     private fun openConnection(host: String, method: String): HttpURLConnection =

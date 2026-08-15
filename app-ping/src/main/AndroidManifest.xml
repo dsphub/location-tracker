@@ -13,6 +13,7 @@
     <application
         android:name=".PingApplication"
         android:allowBackup="true"
+        android:usesCleartextTraffic="true"
         android:icon="@drawable/ic_globe_gray"
         android:label="@string/app_name"
         android:roundIcon="@drawable/ic_globe_gray"

@@ -2,7 +2,7 @@ package com.dsp.ping.log
 
 import android.os.Build
 import android.util.Log
-import com.dsp.androidsample.BuildConfig
+import com.dsp.ping.BuildConfig
 import java.util.regex.Pattern
 
 /**
