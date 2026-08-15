@@ -21,7 +21,9 @@
 
         <activity
             android:name=".ui.MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.Ping.Transparent">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

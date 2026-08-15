@@ -7,6 +7,7 @@ import com.dsp.ping.data.db.PingDatabase
 import com.dsp.ping.notifications.PingNotificationManager
 import com.dsp.ping.ping.HttpPinger
 import com.dsp.ping.util.AppExecutors
+import com.dsp.ping.ui.PingViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -18,4 +19,5 @@ val pingModule = module {
     single { NetworkMonitor(androidContext()) }
     single { HttpPinger() }
     single { PingNotificationManager(androidContext()) }
+    factory { PingViewModel(get(), get()) }
 }

@@ -6,4 +6,25 @@
     <string name="ping_availability_nd">Доступность: н/д</string>
     <string name="ping_action_close">Close</string>
     <string name="ping_action_close_intent">com.dsp.ping.action.CLOSE</string>
+
+    <!-- Setup -->
+    <string name="host_hint">Адрес сайта</string>
+    <string name="host_invalid">Некорректный адрес сайта</string>
+    <string name="btn_start">Начать мониторинг</string>
+    <string name="notifications_denied">Без разрешения статус будет доступен только в приложении</string>
+
+    <!-- Status -->
+    <string name="btn_change_host">Сменить сайт</string>
+    <string name="btn_stop">Остановить</string>
+    <string name="status_online_format">Онлайн %1$d мс</string>
+    <string name="status_error_format">Ошибка: %1$s</string>
+    <string name="status_no_network">Нет сети</string>
+    <string name="status_no_data">Нет данных</string>
+    <string name="status_host_unknown">Сайт не задан</string>
+    <string name="status_availability_format">Доступность за 24 ч: %1$d%%</string>
+    <string name="status_availability_nd">Доступность за 24 ч: н/д</string>
+
+    <!-- History -->
+    <string name="history_latency_format">%1$d мс</string>
+    <string name="dot_content_description">Статус</string>
 </resources>
