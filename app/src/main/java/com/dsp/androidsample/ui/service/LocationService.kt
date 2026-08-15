@@ -210,7 +210,7 @@ class LocationService : Service() {
         val intent = Intent(this, AlarmBroadcastReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
             this, 0,
-            intent, PendingIntent.FLAG_UPDATE_CURRENT
+            intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val task = Runnable {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -360,12 +360,13 @@ class LocationService : Service() {
         Intent(this, LocationService::class.java).apply {
             putExtra(EXTRA_ACTION_STOP, true)
         },
-        PendingIntent.FLAG_UPDATE_CURRENT
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
     private fun activityPendingIntent() = PendingIntent.getActivity(
         this, 0,
-        Intent(this, MainActivity::class.java), 0
+        Intent(this, MainActivity::class.java),
+        PendingIntent.FLAG_IMMUTABLE
     )
 
     /**
