@@ -23,6 +23,7 @@ import com.dsp.ping.data.db.PingEntity
 import com.dsp.ping.data.network.NetworkMonitor
 import com.dsp.ping.icons.IconStatus
 import com.dsp.ping.icons.IconSwitcher
+import com.dsp.ping.log.Logger.d
 import com.dsp.ping.notifications.AvailabilityCalculator
 import com.dsp.ping.notifications.PingNotificationManager
 import com.dsp.ping.ping.HttpPinger
@@ -85,6 +86,7 @@ class PingService : Service() {
             ACTION_PING -> disposer.add(
                 Schedulers.io().scheduleDirect { performPing() }
             )
+
             ACTION_CLOSE -> shutdown()
             else -> {
                 // ACTION_START / рестарт системы (null-intent): сервис уже работает.
@@ -104,6 +106,7 @@ class PingService : Service() {
 
     private fun performPing() {
         if (isShutdown) return
+        d { "=>performPing" }
         val now = System.currentTimeMillis()
         if (now - lastPingAt < MIN_PING_INTERVAL_MS) return
         lastPingAt = now
@@ -123,18 +126,21 @@ class PingService : Service() {
                 status = result.toStatus(),
                 latencyMs = result.latencyMs
             )
+
             is PingResult.Fail -> PingEntity(
                 timestamp = now,
                 host = host,
                 status = result.toStatus(),
                 error = result.error
             )
+
             PingResult.NoNetwork -> PingEntity(
                 timestamp = now,
                 host = host,
                 status = result.toStatus()
             )
         }
+        d { "performPing $entity" }
         repository.addResult(entity)
         iconSwitcher.apply(result.toIconStatus())
 
@@ -221,15 +227,17 @@ class PingService : Service() {
         val triggerAt = System.currentTimeMillis() + PING_INTERVAL_MS
 
         val exact = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            alarmManager.canScheduleExactAlarms()
+                alarmManager.canScheduleExactAlarms()
 
         when {
             exact -> alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent
             )
+
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> alarmManager.setAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent
             )
+
             else -> alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
         }
     }
