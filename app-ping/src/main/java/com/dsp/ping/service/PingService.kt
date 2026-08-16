@@ -80,6 +80,10 @@ class PingService : Service() {
 
         acquireWakeLock()
 
+        // Будильник следующей границы ставится сразу: даже если стартовый пинг
+        // не завершится (процесс убит), цепочка 5-минутных пингов сохранится.
+        scheduleNextAlarm()
+
         // Пинг при старте: сразу, не дожидаясь ближайшей границы периода.
         disposer.add(Schedulers.io().scheduleDirect { performPing() })
 
@@ -121,14 +125,26 @@ class PingService : Service() {
     private fun performPing(force: Boolean = false) {
         if (isShutdown) return
         d { "=>performPing force=$force" }
-        val now = System.currentTimeMillis()
-        if (!force && now - lastPingAt < MIN_PING_INTERVAL_MS) {
-            // Дубликат от параллельных планировщиков (старт/граница, Rx/будильник):
-            // пинг пропускаем, но цепочку будильников не разрываем.
-            if (!isShutdown) scheduleNextAlarm()
-            return
+
+        // Guard и фиксация времени должны быть атомарными: на границе периода
+        // Rx-тик и будильник срабатывают одновременно и без синхронизации
+        // оба прошли бы проверку → двойной пинг.
+        val now = synchronized(this) {
+            val current = System.currentTimeMillis()
+            if (!force && current - lastPingAt < MIN_PING_INTERVAL_MS) {
+                // Дубликат от параллельных планировщиков (старт/граница, Rx/будильник):
+                // пинг пропускаем, но цепочку будильников не разрываем.
+                if (!isShutdown) scheduleNextAlarm()
+                return
+            }
+            lastPingAt = current
+            current
         }
-        lastPingAt = now
+
+        // Будильник следующей границы ставится синхронно: цепочка не должна зависеть
+        // от асинхронной записи в БД — процесс может быть убит до колбэка,
+        // и 5-минутные пинги оборвались бы.
+        if (!isShutdown) scheduleNextAlarm()
 
         val host = settingsStore.getHost() ?: return
 
@@ -165,9 +181,9 @@ class PingService : Service() {
     }
 
     /**
-     * Пост-действия после фактической записи результата в БД: обновление нотификации,
-     * перепланирование будильника и оповещение открытого UI (любой пинг — стартовый,
-     * по расписанию или ручной).
+     * Пост-действия после фактической записи результата в БД: обновление нотификации
+     * и оповещение открытого UI (любой пинг — стартовый, по расписанию или ручной).
+     * Перепланирование будильника здесь НЕ выполняется — оно синхронно в [performPing].
      */
     private fun onPingPersisted() {
         if (isShutdown) return
@@ -184,10 +200,6 @@ class PingService : Service() {
             Intent(ACTION_PING_COMPLETED)
                 .setPackage(packageName)
         )
-
-        if (!isShutdown) {
-            scheduleNextAlarm()
-        }
     }
 
     private fun updateNotification(host: String, percent: Int?) {
