@@ -68,6 +68,7 @@ class PingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        d { "onCreate" }
         notificationManager.createChannel()
 
         val host = settingsStore.getHost() ?: getString(com.dsp.ping.R.string.app_name)
@@ -91,7 +92,10 @@ class PingService : Service() {
         disposer.add(
             Observable.interval(delayToNextBoundaryMs(), PING_INTERVAL_MS, TimeUnit.MILLISECONDS)
                 .observeOn(Schedulers.io())
-                .subscribe { performPing() }
+                .subscribe {
+                    d {"onCreate performPing"}
+                    performPing()
+                }
         )
     }
 
@@ -123,8 +127,8 @@ class PingService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun performPing(force: Boolean = false) {
+        d { "=>performPing force=$force sd=$isShutdown" }
         if (isShutdown) return
-        d { "=>performPing force=$force" }
 
         // Guard и фиксация времени должны быть атомарными: на границе периода
         // Rx-тик и будильник срабатывают одновременно и без синхронизации
@@ -186,6 +190,7 @@ class PingService : Service() {
      * Перепланирование будильника здесь НЕ выполняется — оно синхронно в [performPing].
      */
     private fun onPingPersisted() {
+        d { "onPingPersisted" }
         if (isShutdown) return
         val host = settingsStore.getHost() ?: return
 
@@ -216,6 +221,7 @@ class PingService : Service() {
     }
 
     private fun shutdown() {
+        d { "shutdown" }
         isShutdown = true
         disposer.dispose()
         cancelAlarm()
@@ -265,10 +271,10 @@ class PingService : Service() {
     //endregion
 
     //region doze alarm
-
     private fun scheduleNextAlarm() {
+        d { "scheduleNextAlarm" }
         if (isShutdown) return
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
         val pendingIntent = alarmPendingIntent()
         val triggerAt = nextBoundaryTime()
 
@@ -289,7 +295,8 @@ class PingService : Service() {
     }
 
     private fun cancelAlarm() {
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        d { "cancelAlarm" }
+        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
         alarmManager.cancel(alarmPendingIntent())
     }
 
@@ -314,8 +321,11 @@ class PingService : Service() {
         (now / PING_INTERVAL_MS + 1) * PING_INTERVAL_MS
 
     /** Задержка от текущего момента до ближайшей следующей границы периода. */
-    private fun delayToNextBoundaryMs(now: Long = System.currentTimeMillis()): Long =
-        nextBoundaryTime(now) - now
+    private fun delayToNextBoundaryMs(now: Long = System.currentTimeMillis()): Long {
+        val result = nextBoundaryTime(now) - now
+        d {"delayToNextBoundaryMs $result"}
+        return result
+    }
 
     //endregion
 
