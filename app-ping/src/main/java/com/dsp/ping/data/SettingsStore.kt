@@ -18,10 +18,8 @@ class SettingsStore(context: Context) {
     }
 
     /**
-     * Период пинга в секундах. По умолчанию — [DEFAULT_INTERVAL_SEC] (1 минута).
-     * Пишется Settings-экраном как строка (контракт EditTextPreference) и всегда
-     * зажимается диапазоном [MIN_INTERVAL_SEC]..[MAX_INTERVAL_SEC] — на случай
-     * ручной правки файла prefs или изменения границ между версиями.
+     * Период пинга в секундах. Пишется Settings-экраном как строка (контракт
+     * EditTextPreference) и зажимается диапазоном [MIN_INTERVAL_SEC]..[MAX_INTERVAL_SEC].
      */
     fun getIntervalSec(): Long =
         (prefs.getString(KEY_INTERVAL_SEC, null)?.toLongOrNull() ?: DEFAULT_INTERVAL_SEC)
@@ -39,11 +37,7 @@ class SettingsStore(context: Context) {
         prefs.edit().putBoolean(KEY_AUTOSTART, value).apply()
     }
 
-    /**
-     * Подписка на смену периода: слушатель вызывается на потоке, изменившем
-     * значение (Settings-экран — main). Сервис использует это для перезапуска
-     * Rx-таймера без рестарта. Передача null снимает подписку.
-     */
+    /** Подписка на смену периода; null снимает подписку. */
     fun onIntervalChange(listener: (() -> Unit)?) {
         intervalListener = listener
     }
@@ -67,13 +61,13 @@ class SettingsStore(context: Context) {
         /** Автозапуск после загрузки устройства включён по умолчанию. */
         const val DEFAULT_AUTOSTART = true
 
-        /** Минимальный период пинга: 1 секунда. */
+        /** Минимальный период пинга. */
         const val MIN_INTERVAL_SEC = 1L
 
-        /** Максимальный период пинга: 1 день (86400 секунд). */
+        /** Максимальный период пинга (1 день). */
         const val MAX_INTERVAL_SEC = 24L * 60L * 60L
 
-        /** Период пинга по умолчанию: 1 минута (60 секунд). */
+        /** Период по умолчанию (1 минута). */
         const val DEFAULT_INTERVAL_SEC = 60L
     }
 }

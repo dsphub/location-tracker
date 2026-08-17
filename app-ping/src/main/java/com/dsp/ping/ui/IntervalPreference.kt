@@ -10,12 +10,8 @@ import com.dsp.ping.data.SettingsStore
 import com.dsp.ping.ping.PingInterval
 
 /**
- * Период пинга в секундах как [EditTextPreference] с числовым вводом.
- *
- * Значение хранится как строка (контракт [EditTextPreference]), но при чтении
- * сервисом через [SettingsStore.getIntervalSec] зажимается диапазоном
- * [SettingsStore.MIN_INTERVAL_SEC]..[SettingsStore.MAX_INTERVAL_SEC].
- * Здесь же — валидация при вводе и человекочитаемый summary.
+ * Период пинга в секундах как [EditTextPreference]: числовой ввод, валидация
+ * диапазона и человекочитаемый summary.
  */
 class IntervalPreference @JvmOverloads constructor(
     context: Context,
@@ -24,15 +20,12 @@ class IntervalPreference @JvmOverloads constructor(
 ) : EditTextPreference(context, attrs, defStyleAttr) {
 
     init {
-        // В диалоге уточняем единицу измерения — значение вводится в секундах.
         dialogTitle = context.getString(R.string.pref_interval_dialog_title)
-        // Числовой ввод без знака/дроби.
         setOnBindEditTextListener { editText ->
             editText.inputType = InputType.TYPE_CLASS_NUMBER
             editText.hint = context.getString(R.string.pref_interval_hint)
         }
-        // Возвращаем false при невалидном вводе — значение не сохраняется;
-        // тост подсказывает допустимый диапазон (диалог закрывается без записи).
+        // Невалидный ввод не сохраняется; тост подсказывает диапазон.
         setOnPreferenceChangeListener { _, newValue ->
             val valid = PingInterval.parse(newValue?.toString(), MIN_SEC, MAX_SEC) != null
             if (!valid) {
@@ -42,10 +35,7 @@ class IntervalPreference @JvmOverloads constructor(
         }
     }
 
-    /**
-     * Summary в человекочитаемом виде ("1 мин", "2 ч 30 мин" и т.п.).
-     * [useSimpleSummaryProvider] не подходит — он выводит сырую строку.
-     */
+    /** Summary в человекочитаемом виде («1 мин», «2 ч 30 мин»). */
     override fun getSummary(): CharSequence {
         val parsed = PingInterval.parse(text, MIN_SEC, MAX_SEC)
             ?: SettingsStore.DEFAULT_INTERVAL_SEC

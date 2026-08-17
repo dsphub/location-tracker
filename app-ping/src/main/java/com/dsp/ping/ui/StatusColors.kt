@@ -4,10 +4,7 @@ import androidx.annotation.ColorRes
 import com.dsp.ping.R
 import com.dsp.ping.data.db.PingStatus
 
-/**
- * Цвет статуса пинга — тот же, что у точки-индикатора в истории и иконки лаунчера:
- * ok — зелёный, fail — красный, no_network/нет данных — серый.
- */
+/** Цвет статуса пинга: ok — зелёный, fail — красный, остальное — серый. */
 @ColorRes
 fun statusColorRes(status: String?): Int = when (status) {
     PingStatus.OK -> R.color.ping_green

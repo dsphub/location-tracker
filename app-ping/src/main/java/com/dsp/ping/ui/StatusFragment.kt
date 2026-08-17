@@ -94,33 +94,23 @@ class StatusFragment : Fragment() {
     private fun showPings(pings: List<PingEntity>) {
         val last = pings.firstOrNull()
         binding.btnPingNow.text = pingButtonText(last)
-        // Цвет кнопки — по результату последнего пинга, теми же цветами,
-        // что и индикатор в истории (statusColorRes).
+        // Цвет кнопки — по статусу последнего пинга.
         ViewCompat.setBackgroundTintList(
             binding.btnPingNow,
-            ContextCompat.getColorStateList(
-                requireContext(),
-                statusColorRes(last?.status)
-            )
+            ContextCompat.getColorStateList(requireContext(), statusColorRes(last?.status))
         )
-        // Заголовок-дата вставляется перед первым пингом каждого дня.
         val items = buildHistoryItems(
             pings,
             dayKey = { HistoryDateFormatter.dayKey(it) },
             dayTitle = { HistoryDateFormatter.dayTitle(it) }
         )
-        // Новые записи — в позиции 0, но LinearLayoutManager держит якорь на прежней
-        // первой строке. Прокручиваем к вершине после применения списка, иначе
-        // последний результат не виден.
+        // Прокрутка к вершине: LinearLayoutManager держит якорь на прежней первой строке.
         adapter.submitList(items) {
             binding.rvHistory.scrollToPosition(0)
         }
     }
 
-    /**
-     * Текст кнопки «Пинг»: первая строка — всегда «ПИНГ», вторая — результат
-     * последнего пинга: время в мс / Ошибка / Нет сети; без данных — Нет данных.
-     */
+    /** Текст кнопки: первая строка — всегда «ПИНГ», вторая — статус последнего пинга. */
     private fun pingButtonText(ping: PingEntity?): String {
         val statusLine = if (ping == null) {
             getString(R.string.status_no_data)

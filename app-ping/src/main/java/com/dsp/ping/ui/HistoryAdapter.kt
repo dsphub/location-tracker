@@ -18,11 +18,8 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * История пингов: заголовки-даты между группами одного дня и строки
+ * История пингов: заголовки-даты между днями и строки
  * «время, точка-индикатор статуса, задержка или текст ошибки».
- *
- * Форматирование дат вынесено в [HistoryDateFormatter] (чистое, тестируемое),
- * заголовок вставляется перед первым пингом каждого дня ([buildHistoryItems]).
  */
 class HistoryAdapter : ListAdapter<HistoryItem, HistoryAdapter.Holder>(DIFF_CALLBACK) {
 

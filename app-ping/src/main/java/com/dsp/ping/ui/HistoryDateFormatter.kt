@@ -5,11 +5,8 @@ import java.util.Calendar
 import java.util.Locale
 
 /**
- * Форматирование дат истории: "1 сентября 2026".
- *
- * Чистая JVM-логика без android-зависимостей — тестируется на JVM.
- * В русской локали дата с числом требует родительного падежа ("1 сентября"),
- * и [DateFormatSymbols.months] даёт именно такие формы.
+ * Форматирование дат истории: «1 сентября 2026». Чистая JVM-логика.
+ * [DateFormatSymbols.months] даёт родительный падеж месяца, корректный с числом.
  */
 object HistoryDateFormatter {
 
@@ -23,7 +20,7 @@ object HistoryDateFormatter {
         return "$day $month $year"
     }
 
-    /** Ключ дня для группировки: "2026-09-01" по локальной границе суток. */
+    /** Ключ дня для группировки: «2026-09-01». */
     fun dayKey(timestamp: Long, locale: Locale = Locale.getDefault()): String {
         val calendar = Calendar.getInstance(locale)
         calendar.timeInMillis = timestamp
