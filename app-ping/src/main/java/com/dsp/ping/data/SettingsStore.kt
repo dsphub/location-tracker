@@ -16,7 +16,7 @@ class SettingsStore(context: Context) {
         prefs.edit().remove(KEY_HOST).apply()
     }
 
-    private companion object {
+    companion object {
         const val PREFS_NAME = "ping_settings"
         const val KEY_HOST = "host"
     }

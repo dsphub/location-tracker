@@ -59,11 +59,6 @@ class StatusFragment : Fragment() {
 
         binding.tvHost.text = currentHost
 
-        binding.btnChangeHost.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.container, SetupFragment.newInstance())
-                .commit()
-        }
         binding.btnPingNow.setOnClickListener {
             requireContext().startService(
                 Intent(requireContext(), PingService::class.java)
@@ -123,6 +118,13 @@ class StatusFragment : Fragment() {
                 Intent(requireContext(), PingService::class.java)
                     .setAction(PingService.ACTION_CLOSE)
             )
+            return true
+        }
+        if (item.itemId == R.id.action_settings) {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.container, SettingsFragment.newInstance())
+                .addToBackStack(null)
+                .commit()
             return true
         }
         return super.onOptionsItemSelected(item)

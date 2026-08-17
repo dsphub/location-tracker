@@ -24,9 +24,20 @@ class MainActivity : AppCompatActivity() {
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
+        supportFragmentManager.addOnBackStackChangedListener {
+            val showUp = supportFragmentManager.backStackEntryCount > 0
+            supportActionBar?.setDisplayHomeAsUpEnabled(showUp)
+        }
         if (savedInstanceState == null) {
             route()
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        if (supportFragmentManager.popBackStackImmediate()) {
+            return true
+        }
+        return super.onSupportNavigateUp()
     }
 
     override fun onNewIntent(intent: Intent) {

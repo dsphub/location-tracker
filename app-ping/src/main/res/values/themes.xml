@@ -7,6 +7,8 @@
         <item name="colorPrimary">@color/ping_green</item>
         <item name="colorPrimaryDark">@color/ping_green</item>
         <item name="colorAccent">@color/ping_green</item>
+        <!-- PreferenceFragmentCompat требует явного preferenceTheme. -->
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
     </style>
 
     <!-- Translucent theme for future overlay/dialog usage. -->

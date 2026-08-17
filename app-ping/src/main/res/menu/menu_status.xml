@@ -7,4 +7,9 @@
         android:title="@string/btn_stop"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/menu_settings"
+        app:showAsAction="never" />
+
 </menu>

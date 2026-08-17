@@ -26,6 +26,12 @@
     <string name="status_availability_format">Доступность за 24 ч: %1$d%%</string>
     <string name="status_availability_nd">Доступность за 24 ч: н/д</string>
 
+    <!-- Preferences -->
+    <string name="menu_settings">Настройки</string>
+    <string name="pref_host_title">Сменить сайт</string>
+    <string name="pref_host_summary">Адрес сайта для мониторинга</string>
+    <string name="pref_host_invalid">Некорректный адрес сайта</string>
+
     <!-- History -->
     <string name="history_latency_format">%1$d мс</string>
     <string name="dot_content_description">Статус</string>
