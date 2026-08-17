@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ползунок скролла истории: скруглённая полоса в сером цвете приложения. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <corners android:radius="3dp" />
+
+    <size
+        android:width="6dp" />
+
+    <solid android:color="@color/ping_gray" />
+
+</shape>
