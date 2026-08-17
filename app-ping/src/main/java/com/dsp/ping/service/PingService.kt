@@ -59,6 +59,9 @@ class PingService : Service() {
     @Volatile
     private var lastPingAt = 0L
 
+    /** Слот границы последнего выполненного пинга; читается/пишется только под [synchronized] на this. */
+    private var lastPingSlot = -1L
+
     /**
      * Устанавливается в [shutdown]. Гарантирует, что идущий на io-потоке пинг не
      * перепланирует будильник и не перепостит нотификацию после остановки сервиса.
@@ -92,10 +95,7 @@ class PingService : Service() {
         disposer.add(
             Observable.interval(delayToNextBoundaryMs(), PING_INTERVAL_MS, TimeUnit.MILLISECONDS)
                 .observeOn(Schedulers.io())
-                .subscribe {
-                    d {"onCreate performPing"}
-                    performPing()
-                }
+                .subscribe { performPing() }
         )
     }
 
@@ -135,13 +135,23 @@ class PingService : Service() {
         // оба прошли бы проверку → двойной пинг.
         val now = synchronized(this) {
             val current = System.currentTimeMillis()
-            if (!force && current - lastPingAt < MIN_PING_INTERVAL_MS) {
-                // Дубликат от параллельных планировщиков (старт/граница, Rx/будильник):
+            // Дубль одной границы распознаём двумя способами:
+            // 1) тот же слот границы current / PING_INTERVAL_MS — покрывает будильник,
+            //    задержанный в Doze на минуты (setAndAllowWhileIdle без exact-разрешения);
+            // 2) малое окно по времени — покрывает расхождение Rx/AlarmManager
+            //    в несколько мс вокруг границы (Rx считает по nanoTime).
+            // Слоты стартового/ручного пинга всегда строго до следующей границы,
+            // поэтому свежий ручной пинг не может погасить саму границу периода
+            // (баг: пропуск 12:50 после ручного пинга в 12:47:54).
+            if (!force && (current / PING_INTERVAL_MS == lastPingSlot ||
+                    current - lastPingAt < DEDUP_GRACE_MS)) {
+                // Дубликат от параллельных планировщиков одной границы:
                 // пинг пропускаем, но цепочку будильников не разрываем.
                 if (!isShutdown) scheduleNextAlarm()
                 return
             }
             lastPingAt = current
+            lastPingSlot = current / PING_INTERVAL_MS
             current
         }
 
@@ -152,11 +162,13 @@ class PingService : Service() {
 
         val host = settingsStore.getHost() ?: return
 
+        d { "=performPing 0" }
         val result = if (networkMonitor.isOnline()) {
             pinger.ping(host)
         } else {
             PingResult.NoNetwork
         }
+        d { "=performPing 1" }
 
         val entity = when (result) {
             is PingResult.Ok -> PingEntity(
@@ -179,7 +191,7 @@ class PingService : Service() {
                 status = result.toStatus()
             )
         }
-        d { "performPing $entity" }
+        d { "=performPing $entity" }
         repository.addResult(entity) { onPingPersisted() }
         iconSwitcher.apply(result.toIconStatus())
     }
@@ -341,7 +353,14 @@ class PingService : Service() {
         /** Период опроса: зашит константой, включён всегда; пинги выравниваются по кратным ему границам. */
         const val PING_INTERVAL_MS = 5 * 60_000L
 
-        private const val MIN_PING_INTERVAL_MS = 4 * 60_000L
+        /**
+         * Окно подавления дубля одной границы вокруг самого момента границы:
+         * Rx-тик и будильник могут разойтись на единицы миллисекунд из-за разных
+         * часов (nanoTime vs RTC). Дубли, задержанные на минуты, ловятся слотом
+         * границы (см. [performPing]), поэтому окно не должно быть большим —
+         * иначе оно гасит саму границу после свежего ручного пинга.
+         */
+        private const val DEDUP_GRACE_MS = 10_000L
         private const val KILL_DELAY_MS = 300L
     }
 }
