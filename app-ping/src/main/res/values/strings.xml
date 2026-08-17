@@ -34,6 +34,7 @@
     <string name="pref_host_summary">Адрес сайта для мониторинга</string>
     <string name="pref_host_invalid">Некорректный адрес сайта</string>
     <string name="pref_interval_title">Период пинга</string>
+    <string name="pref_interval_dialog_title" translatable="false">Период пинга (сек)</string>
     <string name="pref_interval_default" translatable="false">60</string>
     <string name="pref_interval_hint">Период в секундах (1–86400)</string>
     <string name="pref_interval_invalid">Период: целое число от 1 сек до 1 дня (86400)</string>

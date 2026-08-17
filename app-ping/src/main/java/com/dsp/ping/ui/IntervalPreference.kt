@@ -24,6 +24,8 @@ class IntervalPreference @JvmOverloads constructor(
 ) : EditTextPreference(context, attrs, defStyleAttr) {
 
     init {
+        // В диалоге уточняем единицу измерения — значение вводится в секундах.
+        dialogTitle = context.getString(R.string.pref_interval_dialog_title)
         // Числовой ввод без знака/дроби.
         setOnBindEditTextListener { editText ->
             editText.inputType = InputType.TYPE_CLASS_NUMBER
