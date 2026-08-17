@@ -13,4 +13,10 @@
         android:title="@string/pref_interval_title"
         android:defaultValue="@string/pref_interval_default" />
 
+    <SwitchPreferenceCompat
+        android:key="autostart"
+        android:title="@string/pref_autostart_title"
+        android:summary="@string/pref_autostart_summary"
+        android:defaultValue="true" />
+
 </PreferenceScreen>

@@ -37,6 +37,8 @@
     <string name="pref_interval_default" translatable="false">60</string>
     <string name="pref_interval_hint">Период в секундах (1–86400)</string>
     <string name="pref_interval_invalid">Период: целое число от 1 сек до 1 дня (86400)</string>
+    <string name="pref_autostart_title">Автостарт</string>
+    <string name="pref_autostart_summary">Запускать мониторинг при загрузке устройства</string>
 
     <!-- History -->
     <string name="history_latency_format">%1$d мс</string>

@@ -32,6 +32,13 @@ class SettingsStore(context: Context) {
         prefs.edit().putString(KEY_INTERVAL_SEC, clamped.toString()).apply()
     }
 
+    /** Автозапуск мониторинга при загрузке устройства; по умолчанию включён. */
+    fun isAutostartEnabled(): Boolean = prefs.getBoolean(KEY_AUTOSTART, DEFAULT_AUTOSTART)
+
+    fun setAutostartEnabled(value: Boolean) {
+        prefs.edit().putBoolean(KEY_AUTOSTART, value).apply()
+    }
+
     /**
      * Подписка на смену периода: слушатель вызывается на потоке, изменившем
      * значение (Settings-экран — main). Сервис использует это для перезапуска
@@ -55,6 +62,10 @@ class SettingsStore(context: Context) {
         const val PREFS_NAME = "ping_settings"
         const val KEY_HOST = "host"
         const val KEY_INTERVAL_SEC = "interval_sec"
+        const val KEY_AUTOSTART = "autostart"
+
+        /** Автозапуск после загрузки устройства включён по умолчанию. */
+        const val DEFAULT_AUTOSTART = true
 
         /** Минимальный период пинга: 1 секунда. */
         const val MIN_INTERVAL_SEC = 1L
