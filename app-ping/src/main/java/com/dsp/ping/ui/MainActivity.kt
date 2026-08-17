@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.commit
 import com.dsp.ping.R
+import com.dsp.ping.databinding.ActivityMainBinding
 import com.dsp.ping.service.PingService
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -20,7 +21,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         if (savedInstanceState == null) {
             route()
         }

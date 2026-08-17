@@ -6,6 +6,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -49,6 +52,7 @@ class StatusFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
 
         binding.rvHistory.layoutManager = LinearLayoutManager(requireContext())
         binding.rvHistory.adapter = adapter
@@ -64,12 +68,6 @@ class StatusFragment : Fragment() {
             requireContext().startService(
                 Intent(requireContext(), PingService::class.java)
                     .setAction(PingService.ACTION_PING_NOW)
-            )
-        }
-        binding.btnStop.setOnClickListener {
-            requireContext().startService(
-                Intent(requireContext(), PingService::class.java)
-                    .setAction(PingService.ACTION_CLOSE)
             )
         }
 
@@ -112,6 +110,22 @@ class StatusFragment : Fragment() {
         PingStatus.OK -> getString(R.string.status_online_format, ping.latencyMs ?: 0L)
         PingStatus.FAIL -> getString(R.string.status_error_format, ping.error.orEmpty())
         else -> getString(R.string.status_no_network)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_status, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_stop) {
+            requireContext().startService(
+                Intent(requireContext(), PingService::class.java)
+                    .setAction(PingService.ACTION_CLOSE)
+            )
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onResume() {
