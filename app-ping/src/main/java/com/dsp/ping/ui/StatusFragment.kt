@@ -93,8 +93,7 @@ class StatusFragment : Fragment() {
 
     private fun showPings(pings: List<PingEntity>) {
         val last = pings.firstOrNull()
-        binding.btnPingNow.text = last?.let(::statusText)
-            ?: getString(R.string.status_no_data)
+        binding.btnPingNow.text = pingButtonText(last)
         // Цвет кнопки — по результату последнего пинга, теми же цветами,
         // что и индикатор в истории (statusColorRes).
         ViewCompat.setBackgroundTintList(
@@ -112,10 +111,25 @@ class StatusFragment : Fragment() {
         }
     }
 
-    private fun statusText(ping: PingEntity): String = when (ping.status) {
-        PingStatus.OK -> getString(R.string.status_online_format, ping.latencyMs ?: 0L)
-        PingStatus.FAIL -> getString(R.string.status_error_format, ping.error.orEmpty())
-        else -> getString(R.string.status_no_network)
+    /**
+     * Текст кнопки «Пинг»: первая строка — всегда «ПИНГ», вторая — результат
+     * последнего пинга: время в мс / Ошибка / Нет сети; без данных — Нет данных.
+     */
+    private fun pingButtonText(ping: PingEntity?): String {
+        val statusLine = if (ping == null) {
+            getString(R.string.status_no_data)
+        } else {
+            when (ping.status) {
+                PingStatus.OK -> getString(R.string.history_latency_format, ping.latencyMs ?: 0L)
+                PingStatus.FAIL -> getString(R.string.status_error_short)
+                else -> getString(R.string.status_no_network)
+            }
+        }
+        return getString(
+            R.string.btn_ping_text_format,
+            getString(R.string.btn_ping_title),
+            statusLine
+        )
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

@@ -18,7 +18,9 @@
     <string name="btn_change_host">Сменить сайт</string>
     <string name="btn_stop">Остановить</string>
     <string name="btn_ping_now">Пинг</string>
-    <string name="status_online_format">Онлайн %1$d мс</string>
+    <string name="btn_ping_title" translatable="false">ПИНГ</string>
+    <string name="btn_ping_text_format">%1$s\n%2$s</string>
+    <string name="status_error_short">Ошибка</string>
     <string name="status_error_format">Ошибка: %1$s</string>
     <string name="status_no_network">Нет сети</string>
     <string name="status_no_data">Нет данных</string>
