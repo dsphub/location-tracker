@@ -35,7 +35,7 @@ class HistoryAdapter : ListAdapter<PingEntity, HistoryAdapter.Holder>(DIFF_CALLB
                 SimpleDateFormat(TIME_FORMAT, Locale.US).format(Date(item.timestamp))
             ViewCompat.setBackgroundTintList(
                 binding.viewDot,
-                ContextCompat.getColorStateList(context, statusColor(item.status))
+                ContextCompat.getColorStateList(context, statusColorRes(item.status))
             )
             binding.tvDetail.text = when (item.status) {
                 PingStatus.OK -> context.getString(
@@ -45,12 +45,6 @@ class HistoryAdapter : ListAdapter<PingEntity, HistoryAdapter.Holder>(DIFF_CALLB
                 PingStatus.FAIL -> item.error.orEmpty()
                 else -> context.getString(R.string.status_no_network)
             }
-        }
-
-        private fun statusColor(status: String): Int = when (status) {
-            PingStatus.OK -> R.color.ping_green
-            PingStatus.FAIL -> R.color.ping_red
-            else -> R.color.ping_gray
         }
 
         private companion object {

@@ -31,6 +31,14 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             route()
         }
+
+        // Actionbar и status bar окрашиваются по результату последнего пинга теми же
+        // цветами, что и индикатор в истории: ok — зелёный, fail — красный, нет данных — серый.
+        viewModel.recentPings().observe(this) { pings ->
+            val color = ContextCompat.getColor(this, statusColorRes(pings.firstOrNull()?.status))
+            binding.toolbar.setBackgroundColor(color)
+            window.statusBarColor = color
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {

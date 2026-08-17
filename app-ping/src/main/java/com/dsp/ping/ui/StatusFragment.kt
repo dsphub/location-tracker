@@ -12,6 +12,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dsp.ping.R
@@ -91,8 +92,18 @@ class StatusFragment : Fragment() {
     }
 
     private fun showPings(pings: List<PingEntity>) {
-        binding.btnPingNow.text = pings.firstOrNull()?.let(::statusText)
+        val last = pings.firstOrNull()
+        binding.btnPingNow.text = last?.let(::statusText)
             ?: getString(R.string.status_no_data)
+        // Цвет кнопки — по результату последнего пинга, теми же цветами,
+        // что и индикатор в истории (statusColorRes).
+        ViewCompat.setBackgroundTintList(
+            binding.btnPingNow,
+            ContextCompat.getColorStateList(
+                requireContext(),
+                statusColorRes(last?.status)
+            )
+        )
         // Новые записи — в позиции 0, но LinearLayoutManager держит якорь на прежней
         // первой строке. Прокручиваем к вершине после применения списка, иначе
         // последний результат не виден.
