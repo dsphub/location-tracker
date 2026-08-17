@@ -103,10 +103,16 @@ class StatusFragment : Fragment() {
                 statusColorRes(last?.status)
             )
         )
+        // Заголовок-дата вставляется перед первым пингом каждого дня.
+        val items = buildHistoryItems(
+            pings,
+            dayKey = { HistoryDateFormatter.dayKey(it) },
+            dayTitle = { HistoryDateFormatter.dayTitle(it) }
+        )
         // Новые записи — в позиции 0, но LinearLayoutManager держит якорь на прежней
         // первой строке. Прокручиваем к вершине после применения списка, иначе
         // последний результат не виден.
-        adapter.submitList(pings) {
+        adapter.submitList(items) {
             binding.rvHistory.scrollToPosition(0)
         }
     }
