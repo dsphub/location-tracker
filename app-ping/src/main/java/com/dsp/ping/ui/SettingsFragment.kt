@@ -2,6 +2,10 @@ package com.dsp.ping.ui
 
 import android.os.Bundle
 import android.text.InputType
+import android.util.TypedValue
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import com.dsp.ping.R
@@ -16,9 +20,23 @@ import com.dsp.ping.ping.HostNormalizer
 class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // Тот же файл, что у SettingsStore: сервис и SetupFragment читают его.
+        // Имя файла prefs должно быть выставлено ДО super.onCreate(): внутри него
+        // вызывается onCreatePreferences, и при инфляции preferences.xml преференсы
+        // читают начальные значения (summary) уже из этого файла.
         preferenceManager.sharedPreferencesName = SettingsStore.PREFS_NAME
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View = super.onCreateView(inflater, container, savedInstanceState).apply {
+        // Активити прозрачная (Theme.Ping.Transparent), поэтому фон красит каждый
+        // экран сам — как fragment_status/fragment_setup (?android:attr/colorBackground).
+        val background = TypedValue()
+        requireContext().theme.resolveAttribute(android.R.attr.colorBackground, background, true)
+        setBackgroundColor(background.data)
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
