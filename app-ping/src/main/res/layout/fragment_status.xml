@@ -18,14 +18,6 @@
         tools:text="https://example.com" />
 
     <TextView
-        android:id="@+id/tv_status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        tools:text="@string/status_online_format" />
-
-    <TextView
         android:id="@+id/tv_availability"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -44,6 +36,8 @@
         android:id="@+id/btn_ping_now"
         android:layout_width="match_parent"
         android:layout_height="144dp"
+        android:ellipsize="end"
+        android:maxLines="2"
         android:text="@string/btn_ping_now"
         android:textSize="42sp" />
 

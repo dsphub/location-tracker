@@ -8,4 +8,9 @@
         android:summary="@string/pref_host_summary"
         app:useSimpleSummaryProvider="true" />
 
+    <com.dsp.ping.ui.IntervalPreference
+        android:key="interval_sec"
+        android:title="@string/pref_interval_title"
+        android:defaultValue="@string/pref_interval_default" />
+
 </PreferenceScreen>

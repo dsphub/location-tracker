@@ -32,6 +32,7 @@ import com.dsp.ping.ping.toStatus
 import com.dsp.ping.ping.toIconStatus
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
@@ -40,8 +41,10 @@ import java.util.concurrent.TimeUnit
  * Foreground-сервис периодического пинга с Doze-поддержкой через AlarmManager.
  *
  * Расписание: пинг выполняется сразу при старте сервиса, далее — на каждой
- * 5-минутной границе wall-clock (:00, :05, :10, ...). Период зашит константой
- * [PING_INTERVAL_MS]; оба планировщика (Rx-таймер и будильники) выравниваются
+ * границе wall-clock, кратной периоду из [SettingsStore.getIntervalSec]
+ * (по умолчанию 1 минута). Смена периода в Settings подхватывается на лету:
+ * Rx-таймер перезапускается, будильники и слоты дедупликации берут новый период
+ * со следующего пинга. Оба планировщика (Rx-таймер и будильники) выравниваются
  * по одному и тому же правилу [nextBoundaryTime].
  */
 class PingService : Service() {
@@ -55,6 +58,9 @@ class PingService : Service() {
 
     private val disposer = CompositeDisposable()
     private var wakeLock: PowerManager.WakeLock? = null
+
+    /** Rx-таймер регулярных пингов; пересоздаётся при смене периода в Settings. */
+    private var periodicTimer: Disposable? = null
 
     @Volatile
     private var lastPingAt = 0L
@@ -91,12 +97,11 @@ class PingService : Service() {
         // Пинг при старте: сразу, не дожидаясь ближайшей границы периода.
         disposer.add(Schedulers.io().scheduleDirect { performPing() })
 
-        // Регулярные пинги: строго по границам периода опроса (:00, :05, :10, ...).
-        disposer.add(
-            Observable.interval(delayToNextBoundaryMs(), PING_INTERVAL_MS, TimeUnit.MILLISECONDS)
-                .observeOn(Schedulers.io())
-                .subscribe { performPing() }
-        )
+        // Регулярные пинги: строго по границам периода опроса.
+        startPeriodicTimer()
+
+        // Смена периода в Settings применяется без перезапуска сервиса.
+        settingsStore.onIntervalChange { startPeriodicTimer() }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -118,6 +123,7 @@ class PingService : Service() {
     }
 
     override fun onDestroy() {
+        settingsStore.onIntervalChange(null)
         disposer.dispose()
         releaseWakeLock()
         cancelAlarm()
@@ -135,23 +141,24 @@ class PingService : Service() {
         // оба прошли бы проверку → двойной пинг.
         val now = synchronized(this) {
             val current = System.currentTimeMillis()
+            val intervalMs = pingIntervalMs()
             // Дубль одной границы распознаём двумя способами:
-            // 1) тот же слот границы current / PING_INTERVAL_MS — покрывает будильник,
+            // 1) тот же слот границы current / intervalMs — покрывает будильник,
             //    задержанный в Doze на минуты (setAndAllowWhileIdle без exact-разрешения);
             // 2) малое окно по времени — покрывает расхождение Rx/AlarmManager
             //    в несколько мс вокруг границы (Rx считает по nanoTime).
             // Слоты стартового/ручного пинга всегда строго до следующей границы,
             // поэтому свежий ручной пинг не может погасить саму границу периода
             // (баг: пропуск 12:50 после ручного пинга в 12:47:54).
-            if (!force && (current / PING_INTERVAL_MS == lastPingSlot ||
-                    current - lastPingAt < DEDUP_GRACE_MS)) {
+            if (!force && (current / intervalMs == lastPingSlot ||
+                    current - lastPingAt < dedupGraceMs(intervalMs))) {
                 // Дубликат от параллельных планировщиков одной границы:
                 // пинг пропускаем, но цепочку будильников не разрываем.
                 if (!isShutdown) scheduleNextAlarm()
                 return
             }
             lastPingAt = current
-            lastPingSlot = current / PING_INTERVAL_MS
+            lastPingSlot = current / intervalMs
             current
         }
 
@@ -324,20 +331,54 @@ class PingService : Service() {
     //region period alignment
 
     /**
-     * Ближайшая следующая граница периода опроса — момент wall-clock, кратный
-     * [PING_INTERVAL_MS]. Эпоха (1970-01-01 00:00:00 UTC) кратна 5 минутам, а смещения
-     * часовых поясов кратны 15 минутам, поэтому выравнивание по эпохе даёт границы
-     * :00/:05/:10 и в локальном времени.
+     * Пересоздаёт Rx-таймер регулярных пингов по текущему периоду из настроек.
+     * Вызывается при старте сервиса и при каждой смене периода в Settings.
      */
-    private fun nextBoundaryTime(now: Long = System.currentTimeMillis()): Long =
-        (now / PING_INTERVAL_MS + 1) * PING_INTERVAL_MS
+    private fun startPeriodicTimer() {
+        periodicTimer?.dispose()
+        val intervalMs = pingIntervalMs()
+        periodicTimer = Observable.interval(
+            delayToNextBoundaryMs(intervalMs),
+            intervalMs,
+            TimeUnit.MILLISECONDS
+        )
+            .observeOn(Schedulers.io())
+            .subscribe { performPing() }
+            .also { disposer.add(it) }
+    }
+
+    /**
+     * Окно подавления дубля вокруг границы: единицы мс расхождения Rx/Alarm —
+     * но не больше половины периода, иначе при периоде 1 сек оно гасило бы
+     * сами границы (10 с по умолчанию — это 10 подряд пропущенных пингов).
+     */
+    private fun dedupGraceMs(intervalMs: Long): Long =
+        minOf(DEDUP_GRACE_MS, intervalMs / 2)
+
+    /**
+     * Ближайшая следующая граница периода опроса — момент wall-clock, кратный
+     * [intervalMs]. Эпоха (1970-01-01 00:00:00 UTC) кратна минуте, а смещения
+     * часовых поясов кратны 15 минутам, поэтому выравнивание по эпохе даёт границы,
+     * круглые и в локальном времени (для периодов, кратных минуте).
+     */
+    private fun nextBoundaryTime(
+        now: Long = System.currentTimeMillis(),
+        intervalMs: Long = pingIntervalMs()
+    ): Long = (now / intervalMs + 1) * intervalMs
 
     /** Задержка от текущего момента до ближайшей следующей границы периода. */
-    private fun delayToNextBoundaryMs(now: Long = System.currentTimeMillis()): Long {
-        val result = nextBoundaryTime(now) - now
+    private fun delayToNextBoundaryMs(
+        now: Long = System.currentTimeMillis(),
+        intervalMs: Long = pingIntervalMs()
+    ): Long {
+        val result = nextBoundaryTime(now, intervalMs) - now
         d {"delayToNextBoundaryMs $result"}
         return result
     }
+
+    /** Текущий период опроса из настроек в миллисекундах. */
+    private fun pingIntervalMs(): Long =
+        settingsStore.getIntervalSec() * 1_000L
 
     //endregion
 
@@ -349,9 +390,6 @@ class PingService : Service() {
         const val ACTION_PING_COMPLETED = "com.dsp.ping.action.PING_COMPLETED"
         const val EXTRA_FROM_NOTIFICATION = "com.dsp.ping.extra.FROM_NOTIFICATION"
         const val NOTIF_ID = 1001
-
-        /** Период опроса: зашит константой, включён всегда; пинги выравниваются по кратным ему границам. */
-        const val PING_INTERVAL_MS = 5 * 60_000L
 
         /**
          * Окно подавления дубля одной границы вокруг самого момента границы:

@@ -91,7 +91,7 @@ class StatusFragment : Fragment() {
     }
 
     private fun showPings(pings: List<PingEntity>) {
-        binding.tvStatus.text = pings.firstOrNull()?.let(::statusText)
+        binding.btnPingNow.text = pings.firstOrNull()?.let(::statusText)
             ?: getString(R.string.status_no_data)
         // Новые записи — в позиции 0, но LinearLayoutManager держит якорь на прежней
         // первой строке. Прокручиваем к вершине после применения списка, иначе
