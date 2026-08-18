@@ -40,7 +40,7 @@ class PingNotificationManager(private val context: Context) {
         }
 
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_globe_gray)
+            .setSmallIcon(R.drawable.ic_stat_ping)
             .setContentTitle(host)
             .setContentText(text)
             .setOngoing(true)
