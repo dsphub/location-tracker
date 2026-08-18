@@ -1,3 +1,19 @@
+/**
+ * Returns the short hash of the HEAD commit of the git repository located at [rootDir],
+ * or "unknown" if git is not available or the directory is not a git repository.
+ */
+static String gitHashOf(File rootDir) {
+    try {
+        def process = ["git", "rev-parse", "--short", "HEAD"].execute(null as String[], rootDir)
+        process.waitFor()
+        if (process.exitValue() == 0) {
+            return process.text.trim()
+        }
+    } catch (Exception ignored) {
+    }
+    return "unknown"
+}
+
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
@@ -15,6 +31,8 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // Overridden with the real value for debug builds, see buildTypes.debug below.
+        buildConfigField "String", "GIT_HASH", '"unknown"'
     }
 
     buildFeatures {
@@ -31,6 +49,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField "String", "GIT_HASH", "\"${gitHashOf(rootProject.rootDir)}\""
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

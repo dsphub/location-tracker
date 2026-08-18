@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.commit
+import com.dsp.ping.BuildConfig
 import com.dsp.ping.R
 import com.dsp.ping.databinding.ActivityMainBinding
 import com.dsp.ping.service.PingService
@@ -24,6 +25,9 @@ class MainActivity : AppCompatActivity() {
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
+        if (BuildConfig.DEBUG) {
+            supportActionBar?.subtitle = BuildConfig.GIT_HASH
+        }
         supportFragmentManager.addOnBackStackChangedListener {
             val showUp = supportFragmentManager.backStackEntryCount > 0
             supportActionBar?.setDisplayHomeAsUpEnabled(showUp)
