@@ -1,13 +1,21 @@
 package com.dsp.ping.icons
 
+import android.app.Activity
+import android.app.Application
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Переключает иконку приложения на лаунчере по статусу пинга через
  * включение/выключение activity-alias из манифеста (AliasGreen/AliasRed/AliasGray).
+ *
+ * Отключение алиаса, которому принадлежит видимая активити, завершает её системой
+ * (DONT_KILL_APP спасает только процесс) — приложение "закрывается само". Поэтому
+ * пока активити на экране, переключение откладывается: [apply] запоминает статус
+ * в pending, и он применяется в момент, когда последняя активити уходит со экрана.
  *
  * Работает только на API 26+ (adaptive icons в mipmap-anydpi-v26). На API 21–25
  * [apply] — no-op: aliases указывают на ресурсы, которых в младших версиях нет,
@@ -24,10 +32,46 @@ class IconSwitcher(private val context: Context) {
     @Volatile
     private var current: IconStatus? = null
 
+    @Volatile
+    private var pending: IconStatus? = null
+
+    private val startedActivities = AtomicInteger()
+
+    init {
+        (context.applicationContext as? Application)?.registerActivityLifecycleCallbacks(
+            object : Application.ActivityLifecycleCallbacks {
+                override fun onActivityStarted(activity: Activity) {
+                    startedActivities.incrementAndGet()
+                }
+
+                override fun onActivityStopped(activity: Activity) {
+                    // Последняя активити ушла со экрана — можно применить отложенное.
+                    if (startedActivities.decrementAndGet() == 0) {
+                        pending?.let(::doApply)
+                    }
+                }
+
+                override fun onActivityCreated(activity: Activity, savedInstanceState: android.os.Bundle?) = Unit
+                override fun onActivityResumed(activity: Activity) = Unit
+                override fun onActivityPaused(activity: Activity) = Unit
+                override fun onActivitySaveInstanceState(activity: Activity, outState: android.os.Bundle) = Unit
+                override fun onActivityDestroyed(activity: Activity) = Unit
+            }
+        )
+    }
+
     fun apply(status: IconStatus) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         if (current == status) return
 
+        if (startedActivities.get() > 0) {
+            pending = status
+            return
+        }
+        doApply(status)
+    }
+
+    private fun doApply(status: IconStatus) {
         val pm = context.packageManager
         val targetClass = ALIAS_CLASSES.getValue(status)
 
@@ -46,6 +90,7 @@ class IconSwitcher(private val context: Context) {
                 )
             }
         current = status
+        pending = null
     }
 
     companion object {
